@@ -102,6 +102,7 @@ def output_correlation(food_to_prices):
             ax2.tick_params('y', colors='r')
 
             fig.tight_layout()
+            plt.title(food + " vs. Tweet Volume")
             plt.savefig(food + "_tweetcnt_correlation.png")
 
 def output_stats(india_food_prices):
