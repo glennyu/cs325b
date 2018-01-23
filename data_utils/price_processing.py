@@ -31,6 +31,25 @@ def parse_file():
                 india_food_prices += [row]
         return india_food_prices
 
+def output_price_plots(food_to_prices):
+    def plot_prices(food, prices, fig_num):
+        plt.figure(fig_num)
+        x = [i for i in range(1, len(prices) + 1)]
+        plt.xlabel('Month')
+        plt.ylabel('National Average Price (INR)')
+        plt.title('Price Trend for ' + food)
+        plt.plot(x, prices)
+        food = food.replace('/', '_')
+        plt.savefig(food + '.png')
+
+    fig_num = 10
+    for food in food_to_prices:
+        city_to_prices = food_to_prices[food]
+        national_prices = city_to_prices['National Average'] 
+        if (len(national_prices) > 0):
+            plot_prices(food, national_prices, fig_num)
+            fig_num += 1
+
 def output_spike_histogram(spike_freqs):
     max_spike = 2.0
     freqs = np.zeros(int(max_spike / 0.1) + 1)
@@ -91,7 +110,8 @@ def output_stats(india_food_prices):
                 if (quotient <= (1.0 - SPIKE) or quotient >= (1.0 + SPIKE)):
                     food_to_spikes[food][city] += 1
 
-    output_spike_histogram(spike_percent_to_freq)
+    output_price_plots(food_to_prices)
+    #output_spike_histogram(spike_percent_to_freq)
 
 def main():
     india_food_prices = parse_file()
