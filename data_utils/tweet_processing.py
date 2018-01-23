@@ -7,7 +7,7 @@ import numpy as np
 import string
 import os
 
-PATH = './'#'/mnt/mounted_bucket/'
+PATH = '/mnt/mounted_bucket/'
 SAMPLING_RATE = 0.01
 SEED = 325
 
@@ -16,15 +16,15 @@ keywords = set(['lentils', 'oil', 'soybean', 'moong', 'wheat', 'salt', 'masur', 
 
 def create_files():
     np.random.seed(SEED)
-    sampledTweetFile = open("../sampled_tweets.csv", "w")
+    sampledTweetFile = open("sampled_tweets.csv", "w")
     sampledTweetWriter = csv.DictWriter(sampledTweetFile, keys)
     sampledTweetWriter.writeheader()
-    geoTweetFile = open("../geo_tweets.csv", "w")
+    geoTweetFile = open("geo_tweets.csv", "w")
     geoTweetWriter = csv.DictWriter(geoTweetFile, keys)
     geoTweetWriter.writeheader()
 
     for filename in os.listdir(PATH):
-        if filename.endswith(".csv"):
+        if filename.endswith(".csv") and filename.startswith("tweet"):
             print("reading", filename)
             numEntries = len(open(PATH + filename).readlines()) - 1
             numSamples = int(SAMPLING_RATE*numEntries)
@@ -42,6 +42,26 @@ def create_files():
 
     sampledTweetFile.close()
     geoTweetFile.close()
+
+def geo_sample():
+    np.random.seed(SEED)
+    sampledTweetFile = open("sampled_geo_tweets.csv", "w")
+    sampledTweetWriter = csv.DictWriter(sampledTweetFile, keys)
+    sampledTweetWriter.writeheader()
+
+    numEntries = len(open("geo_tweets.csv").readlines()) - 1
+    numSamples = int(SAMPLING_RATE*numEntries)
+    print("sampling", numSamples)
+    indices = set(np.random.choice(numEntries, numSamples, replace=False))
+    with open("geo_tweets.csv") as csvfile:
+        reader = csv.DictReader(csvfile)
+        index = 0
+        for row in reader:
+            if index in indices:
+                sampledTweetWriter.writerow(row)
+            index += 1
+
+    sampledTweetFile.close()
 
 def parse_files():
     tweetWordLen = collections.defaultdict(int)
@@ -86,7 +106,8 @@ def parse_files():
     print(tweetWordLen)
 
 def main():
-    create_files()
+    #create_files()
+    geo_sample()
     #parse_files()
     
 if __name__ == "__main__":
