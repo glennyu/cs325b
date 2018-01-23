@@ -1,3 +1,5 @@
+import matplotlib
+matplotlib.use('Agg')
 import collections
 import csv
 import html
@@ -102,7 +104,7 @@ def parse_files():
             tweetWordLen[len(words)] += 1
             for word in words:
                 wordCnt[word] += 1
-
+    print("finished parsing tweets")
     tweet_length_distribution(tweetWordLen)
     word_distribution(wordCnt)
     
