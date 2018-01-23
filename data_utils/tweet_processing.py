@@ -1,8 +1,11 @@
+import matplotlib
+matplotlib.use('Agg')
 import collections
 import csv
 import html
 import matplotlib.pyplot as plt
 import nltk
+from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 import numpy as np
 import string
@@ -13,7 +16,7 @@ SAMPLING_RATE = 0.01
 SEED = 325
 
 keys = ["id", "tweet", "postedTime", "actorLoc", "locName", "locGeoType", "areakm2", "lng", "lat"]
-keywords = set(['lentils', 'oil', 'soybean', 'soybeans', 'moong', 'wheat', 'salt', 'masur', 'flour', 'milk', 'pasteurized', 'sugar', 'palm', 'sunflower', 'jaggery', 'gur', 'tea', 'urad','potato', 'potatoes', 'ghee', 'vanaspati', 'mustard', 'rice', 'onion', 'onions', 'tomato', 'tomatoes', 'groundnut', 'groundnuts'])
+keywords = set(['lentils', 'oil', 'soybean', 'soybeans', 'moong', 'wheat', 'salt', 'masur', 'flour', 'milk', 'pasteurized', 'sugar', 'palm', 'sunflower', 'jaggery', 'gur', 'tea', 'urad','potato', 'potatoes', 'ghee', 'vanaspati', 'mustard', 'rice', 'onion', 'onions', 'tomato', 'tomatoes', 'groundnut', 'groundnuts', 'price', 'sell', 'sells', 'sold', 'buy', 'buys', 'bought'])
 
 def create_files():
     np.random.seed(SEED)
@@ -72,7 +75,6 @@ def tweet_length_distribution(tweetWordLen):
         wordLenX.append(i)
         wordLenY.append(tweetWordLen[i] if i in tweetWordLen else 0)
     plt.bar(wordLenX, wordLenY, align='center', alpha=0.5)
-    plt.xticks(wordLenX, wordLenX)
     plt.xlabel('# of Words')
     plt.ylabel('Frequency')
     plt.title('Tweet Word Length Distribution')
@@ -90,19 +92,17 @@ def word_distribution(wordCnt):
 def parse_files():
     tweetWordLen = collections.defaultdict(int)
     wordCnt = collections.defaultdict(int)
+    stop_words = set(stopwords.words('english'))
     with open("sampled_tweets.csv") as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
             tokens = word_tokenize(html.unescape(row["tweet"]))
             tokens = [w.lower() for w in tokens]
             words = [word for word in tokens if word.isalpha()]
-            #from nltk.corpus import stopwords
-            #stop_words = set(stopwords.words('english'))
-            #words = [w for w in words if not w in stop_words]
             tweetWordLen[len(words)] += 1
             for word in words:
-                wordCnt[word] += 1
-
+                if word not in stop_words:
+                    wordCnt[word] += 1
     tweet_length_distribution(tweetWordLen)
     word_distribution(wordCnt)
     
