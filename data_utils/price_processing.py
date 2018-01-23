@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 #DIR = '/mnt/mounted_bucket/'
-DIR = '../../'
+DIR = './'
 STATE_COL = 3
 CITY_COL = 5
 FOOD_TYPE_COL = 7
@@ -74,6 +74,12 @@ def output_spike_histogram(spike_freqs):
     plot_histogram(freqs, x, x_labels, 0.0, 0)
     plot_histogram(freqs[1:], x[1:], x_labels[1:], 0.1, 1)
 
+def output_correlation(food_to_prices):
+    for food in food_to_prices:
+        city_to_prices = food_to_prices[food]
+        national_prices = city_to_prices['National Average'] 
+        print food, national_prices
+
 def output_stats(india_food_prices):
     # Extract basic data
     food_to_freq = defaultdict(int) # Food type frequencies
@@ -110,7 +116,8 @@ def output_stats(india_food_prices):
                 if (quotient <= (1.0 - SPIKE) or quotient >= (1.0 + SPIKE)):
                     food_to_spikes[food][city] += 1
 
-    output_price_plots(food_to_prices)
+    #output_price_plots(food_to_prices)
+    output_correlation(food_to_prices)
     #output_spike_histogram(spike_percent_to_freq)
 
 def main():
