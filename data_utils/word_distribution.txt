@@ -1,125 +1,71 @@
-soybean appeared 63 times
-pasteurized appeared 4 times
-flour appeared 203 times
-onions appeared 382 times
-potato appeared 735 times
-potatoes appeared 322 times
-sugar appeared 2073 times
-salt appeared 1395 times
-onion appeared 785 times
-groundnut appeared 28 times
-groundnuts appeared 2 times
-urad appeared 30 times
-gur appeared 280 times
-moong appeared 74 times
-oil appeared 7611 times
 lentils appeared 37 times
+sold appeared 4497 times
+jaggery appeared 68 times
+oil appeared 7611 times
+potato appeared 735 times
+moong appeared 74 times
+sells appeared 1026 times
+gur appeared 280 times
+buys appeared 1215 times
+wheat appeared 558 times
+groundnut appeared 28 times
+bought appeared 3172 times
+vanaspati appeared 4 times
+buy appeared 23701 times
 masur appeared 8 times
 tomato appeared 558 times
-soybeans appeared 16 times
-wheat appeared 558 times
-tea appeared 5248 times
-vanaspati appeared 4 times
-ghee appeared 435 times
-jaggery appeared 68 times
-sunflower appeared 90 times
-mustard appeared 299 times
-rice appeared 1624 times
+onion appeared 785 times
 palm appeared 597 times
+flour appeared 203 times
+soybean appeared 63 times
+urad appeared 30 times
+sugar appeared 2073 times
+ghee appeared 435 times
+salt appeared 1395 times
+groundnuts appeared 2 times
+tea appeared 5248 times
+soybeans appeared 16 times
 tomatoes appeared 325 times
+rice appeared 1624 times
 milk appeared 2544 times
+pasteurized appeared 4 times
+mustard appeared 299 times
+sell appeared 8038 times
+sunflower appeared 90 times
+price appeared 15625 times
+potatoes appeared 322 times
+onions appeared 382 times
 rt: 3504699
 https: 2648368
-the: 1799129
-to: 1706811
 http: 1627147
-of: 1180232
-in: 1155887
-a: 1128206
-is: 943337
-for: 931472
-you: 833558
-and: 807686
-i: 728141
-on: 610194
-it: 495901
-with: 458890
-this: 403062
-at: 346806
-are: 345435
-your: 337072
-that: 325852
-be: 314888
-my: 312131
-by: 306271
-we: 288365
-all: 287807
-will: 273282
-do: 263280
-from: 261073
-have: 256749
-not: 255052
-me: 248275
 u: 248079
 india: 245842
 gurmeetramrahim: 236093
-so: 209825
-as: 206814
-what: 194207
 new: 191904
-can: 187796
 one: 186764
-but: 183200
-if: 180839
-who: 178550
-no: 177515
 love: 177156
-he: 172312
-has: 170895
-more: 168270
-now: 167989
-was: 167197
-how: 157797
-just: 155306
 like: 154612
-our: 152307
 good: 148356
-an: 143413
 via: 142356
-when: 140698
-they: 140402
 people: 137629
-up: 137408
 day: 136815
-his: 136024
-out: 136018
 get: 135639
 us: 134779
 time: 130132
-about: 128657
 ji: 127907
 hai: 117881
 best: 117621
 happy: 117023
 today: 114870
-or: 110873
-its: 107971
-only: 105216
-here: 104406
 follow: 99300
-why: 98892
 life: 98020
 know: 93308
 make: 91982
-their: 91361
 narendramodi: 90709
 world: 90422
-d: 90297
-after: 89579
 modi: 88421
 n: 88071
 see: 87399
-there: 87303
 win: 87055
 want: 83916
 great: 81867
@@ -134,32 +80,18 @@ go: 77256
 ur: 77053
 delhi: 76190
 back: 76035
-very: 74481
 news: 73826
-than: 72975
-them: 72966
-her: 72453
-should: 71923
 much: 71787
 thank: 71695
-most: 71082
 ki: 69383
-some: 69350
-over: 68651
 need: 68535
 bjp: 68493
 video: 68132
-am: 68026
-too: 67865
 hi: 67794
 never: 66512
-been: 65982
 aap: 65605
-did: 64260
 always: 63735
 take: 62363
-him: 61934
-she: 60686
 na: 59223
 fans: 59144
 team: 58721
@@ -168,25 +100,20 @@ every: 58248
 would: 58054
 sir: 57365
 may: 56998
-any: 56746
 way: 56570
 even: 56477
-which: 56444
-against: 55373
-being: 55263
 let: 55159
 live: 54919
 look: 54769
 vote: 54395
 says: 54290
-right: 53929
 last: 53929
+right: 53929
 contest: 53532
 many: 52918
 think: 52391
 h: 52276
 year: 51943
-does: 51792
 really: 51761
 man: 51241
 ca: 51083
@@ -200,7 +127,6 @@ still: 50265
 movie: 50250
 well: 50051
 twitter: 49984
-then: 49944
 read: 49815
 also: 49314
 big: 48913
@@ -211,14 +137,11 @@ got: 47956
 keep: 47907
 show: 47790
 birthday: 47739
-these: 47562
 morning: 47476
 youtube: 47246
 help: 46869
-off: 46869
 facebook: 46720
 ka: 46719
-were: 46239
 ke: 45661
 check: 45620
 p: 45552
@@ -227,16 +150,12 @@ going: 45439
 ho: 45312
 must: 45070
 photo: 44703
-had: 44688
-because: 44617
 tweet: 44603
 next: 44514
 better: 44176
-into: 43924
 hope: 43865
 days: 43467
 rs: 43329
-other: 43005
 yes: 42703
 made: 42562
 true: 42515
@@ -247,9 +166,6 @@ guys: 41408
 amazing: 41145
 ever: 40341
 heart: 40230
-again: 40117
-where: 39980
-same: 39040
 beautiful: 39003
 support: 38468
 women: 38345
@@ -259,12 +175,10 @@ share: 37546
 g: 37255
 b: 37213
 friends: 36933
-those: 36882
 night: 36339
 times: 36297
 things: 36158
 guru: 36127
-before: 36058
 congress: 35861
 join: 35816
 posted: 35398
@@ -273,7 +187,6 @@ said: 34899
 real: 34869
 someone: 34857
 stop: 34532
-such: 34487
 awesome: 34279
 two: 34218
 bhi: 34188
@@ -286,13 +199,11 @@ person: 33351
 k: 33087
 pakistan: 32969
 business: 32810
-m: 32655
 done: 32587
 retweet: 32536
 call: 32503
 wish: 32291
 post: 32216
-down: 32202
 nahi: 32169
 dear: 32068
 ready: 31823
@@ -322,7 +233,6 @@ looking: 29379
 dont: 29330
 full: 29327
 something: 29149
-doing: 28961
 waiting: 28891
 girl: 28730
 ndtv: 28601
@@ -333,14 +243,11 @@ case: 28065
 msg: 28019
 followers: 27896
 beingsalmankhan: 27809
-s: 27803
 name: 27740
-while: 27469
 set: 27463
 wow: 27349
 bless: 27138
 country: 27132
-own: 27080
 job: 27001
 minister: 26907
 tomorrow: 26876
@@ -369,12 +276,10 @@ papa: 25313
 story: 25271
 away: 25163
 lot: 25065
-t: 25049
 thing: 25029
 state: 25015
 gandhi: 24982
 colorstv: 24951
-through: 24932
 trending: 24876
 getting: 24797
 open: 24742
@@ -382,7 +287,6 @@ timesnow: 24717
 old: 24669
 bad: 24633
 breaking: 24491
-under: 24300
 pls: 24244
 pmoindia: 24145
 mind: 24129
@@ -394,7 +298,6 @@ aur: 23868
 high: 23775
 buy: 23701
 music: 23700
-both: 23698
 click: 23680
 congratulations: 23632
 special: 23411
@@ -403,7 +306,6 @@ care: 23335
 wo: 23145
 google: 22968
 tv: 22965
-during: 22861
 asaram: 22788
 government: 22777
 using: 22764
@@ -418,7 +320,6 @@ try: 21752
 city: 21588
 looks: 21454
 ye: 21388
-between: 21369
 vs: 21285
 oh: 21236
 ek: 21208
@@ -437,7 +338,6 @@ place: 20505
 face: 20425
 bapu: 20374
 answer: 20370
-few: 20367
 water: 20289
 latest: 20281
 toh: 20189
@@ -450,14 +350,12 @@ chance: 19960
 salman: 19909
 bring: 19874
 words: 19847
-o: 19672
 others: 19666
 moment: 19609
 nation: 19605
 welcome: 19596
 believe: 19571
 hindu: 19534
-each: 19296
 future: 19187
 rahul: 19173
 black: 19142
@@ -467,7 +365,6 @@ tonight: 19046
 bank: 19031
 trailer: 19009
 mobile: 18943
-once: 18908
 action: 18862
 pak: 18848
 men: 18835
@@ -496,14 +393,12 @@ working: 17992
 ppl: 17932
 save: 17915
 baby: 17888
-yourself: 17850
 little: 17814
 marketing: 17807
 feeling: 17795
 shows: 17771
 learn: 17764
 ab: 17743
-y: 17715
 lost: 17692
 number: 17687
 hain: 17648
@@ -515,7 +410,6 @@ used: 17339
 house: 17314
 china: 17268
 android: 17159
-won: 17154
 launch: 17132
 needs: 17115
 tech: 17110
@@ -555,7 +449,6 @@ put: 16241
 ipl: 16207
 mean: 16192
 srk: 16182
-having: 16132
 update: 16098
 whole: 16096
 school: 16090
@@ -630,8 +523,8 @@ education: 14546
 koi: 14539
 followed: 14514
 gon: 14506
-apple: 14495
 yeah: 14495
+apple: 14495
 order: 14431
 actually: 14375
 market: 14354
@@ -713,8 +606,8 @@ cup: 13006
 body: 13005
 far: 13001
 muslim: 12999
-sometimes: 12980
 blog: 12980
+sometimes: 12980
 indians: 12918
 head: 12898
 participate: 12867
@@ -728,8 +621,8 @@ stats: 12781
 pay: 12728
 industry: 12703
 interview: 12684
-vijay: 12657
 photos: 12657
+vijay: 12657
 fast: 12611
 questions: 12551
 available: 12550
@@ -737,8 +630,8 @@ mere: 12509
 hv: 12502
 saying: 12493
 united: 12472
-picture: 12447
 offer: 12447
+picture: 12447
 trump: 12416
 crore: 12403
 political: 12393
@@ -863,8 +756,8 @@ liye: 10900
 child: 10879
 mom: 10862
 turn: 10852
-craze: 10838
 followtrick: 10838
+craze: 10838
 boy: 10815
 ways: 10802
 sharma: 10793
@@ -989,10 +882,9 @@ poster: 9428
 rock: 9427
 smart: 9424
 control: 9412
-near: 9401
 sonia: 9401
+near: 9401
 request: 9394
-re: 9392
 beat: 9387
 kill: 9385
 tamil: 9352
@@ -1000,7 +892,6 @@ view: 9351
 total: 9349
 coz: 9344
 response: 9340
-until: 9338
 maharashtra: 9314
 jnu: 9311
 amazon: 9306
@@ -1028,3 +919,119 @@ green: 9136
 space: 9130
 common: 9123
 sc: 9121
+indiatoday: 9110
+pretty: 9107
+sports: 9104
+thats: 9085
+key: 9081
+gone: 9074
+fuck: 9067
+web: 9066
+talks: 9064
+shot: 9045
+mediacrooks: 9034
+worst: 9031
+friday: 9004
+sign: 9004
+mufc: 8993
+calls: 8987
+album: 8984
+career: 8960
+religion: 8951
+ones: 8944
+channel: 8940
+awards: 8922
+allah: 8913
+though: 8912
+early: 8900
+complete: 8897
+earth: 8889
+gaya: 8878
+search: 8872
+cause: 8859
+players: 8858
+hindi: 8856
+track: 8843
+cover: 8837
+went: 8831
+truly: 8831
+met: 8830
+speak: 8810
+din: 8810
+sex: 8802
+form: 8800
+volunteers: 8770
+sun: 8769
+add: 8767
+hold: 8760
+mai: 8748
+elections: 8728
+lucky: 8727
+mera: 8718
+positive: 8718
+centre: 8710
+blessed: 8708
+meiej: 8701
+bt: 8698
+knows: 8683
+trends: 8676
+cong: 8672
+heard: 8653
+female: 8648
+exciting: 8647
+yoga: 8633
+terror: 8630
+hands: 8630
+isis: 8624
+rape: 8620
+okay: 8610
+boss: 8596
+derasachasauda: 8565
+football: 8560
+reality: 8557
+teaser: 8554
+mr: 8552
+priyankachopra: 8547
+absolutely: 8531
+missed: 8525
+australia: 8523
+terrorists: 8520
+promise: 8508
+return: 8495
+instagram: 8481
+able: 8475
+ni: 8472
+fb: 8468
+shit: 8446
+hospital: 8446
+voting: 8441
+within: 8440
+niallofficial: 8420
+prince: 8397
+updates: 8368
+ago: 8361
+blue: 8356
+pain: 8354
+unfollowers: 8343
+club: 8339
+farmers: 8334
+stage: 8326
+build: 8324
+eat: 8311
+press: 8311
+four: 8302
+catch: 8300
+myntra: 8299
+httweets: 8296
+ad: 8287
+launched: 8285
+along: 8276
+festival: 8269
+lakh: 8257
+automatically: 8253
+opening: 8237
+hair: 8222
+choice: 8216
+train: 8205
+shop: 8198
+journey: 8197
