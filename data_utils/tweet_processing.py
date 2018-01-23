@@ -74,6 +74,19 @@ def tweet_length_distribution(tweetWordLen):
     for i in range(1, maxLen + 1):
         wordLenX.append(i)
         wordLenY.append(tweetWordLen[i] if i in tweetWordLen else 0)
+    total = sum(wordLenY)
+    sumLengths = sum([wordLenX[i]*wordLenY[i] for i in range(len(wordLenX))])
+    mean = 1.0*sumLengths/total
+    median, cur = 0, 0
+    for i in range(len(wordLenX)):
+        cur += wordLenY[i]
+        if 2*cur >= total:
+            median = i + 1
+            break
+    print("mean", mean)
+    print("median", median)
+    for i in range(30, len(wordLenX)):
+        print(i + 1, wordLenY[i])
     plt.bar(wordLenX, wordLenY, align='center', alpha=0.5)
     plt.xlabel('# of Words')
     plt.ylabel('Frequency')
