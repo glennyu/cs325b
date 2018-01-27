@@ -35,6 +35,7 @@ sunflower appeared 90 times
 price appeared 15625 times
 potatoes appeared 322 times
 onions appeared 382 times
+pay appeared 12728 times
 rt: 3504699
 https: 2648368
 http: 1627147

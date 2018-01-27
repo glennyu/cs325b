@@ -2,6 +2,7 @@ import csv
 from collections import defaultdict
 import matplotlib.pyplot as plt
 import numpy as np
+from scipy.stats import pearsonr
 
 #DIR = '/mnt/mounted_bucket/'
 DIR = './'
@@ -20,6 +21,8 @@ END_YEAR = 2016
 
 SPIKE = 0.1
 SPIKE_SCALE = 0.1
+
+tweet_cnt = [218054, 219862, 214713, 250476, 261245, 328003, 335138, 340330, 331155, 373601, 386361, 415478, 443676, 267091]
 
 def parse_file():
     with open(DIR + 'WFPVAM_FoodPrices_24-01-2017.csv') as csvfile:
@@ -75,10 +78,32 @@ def output_spike_histogram(spike_freqs):
     plot_histogram(freqs[1:], x[1:], x_labels[1:], 0.1, 1)
 
 def output_correlation(food_to_prices):
+    fig_num = 100
     for food in food_to_prices:
         city_to_prices = food_to_prices[food]
         national_prices = city_to_prices['National Average'] 
-        print food, national_prices
+        print food
+        r,p = pearsonr(tweet_cnt, national_prices)
+        print r, p
+        
+        if food == "Sugar" or food == "Potatoes":
+            plt.figure(fig_num)
+            fig_num += 1
+            fig, ax1 = plt.subplots()
+            t = np.arange(1, 15)
+            ax1.plot(t, national_prices, 'b-')
+            ax1.set_xlabel('Month')
+            ax1.set_ylabel('Price', color='b')
+            ax1.tick_params('y', colors='b')
+
+            ax2 = ax1.twinx()
+            ax2.plot(t, tweet_cnt, 'r-')
+            ax2.set_ylabel('# of Tweets', color='r')
+            ax2.tick_params('y', colors='r')
+
+            fig.tight_layout()
+            plt.title(food + " vs. Tweet Volume")
+            plt.savefig(food + "_tweetcnt_correlation.png")
 
 def output_stats(india_food_prices):
     # Extract basic data
