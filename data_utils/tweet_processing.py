@@ -119,10 +119,46 @@ def parse_files():
     tweet_length_distribution(tweetWordLen)
     word_distribution(wordCnt)
     
+def separate_geo_tweets():
+    cities = []
+    with open("cities.txt", "r") as f:
+        line = f.readline().strip('\n')
+        cities = line.split(', ')
+    cities.append("India")
+    cities.append("Trivandrum")
+
+    city_csv, lineCnt = [], []
+    for city in cities:
+        fileName = open(city + "_tweets.csv", "w")
+        writer = csv.DictWriter(fileName, keys)
+        writer.writeheader()
+        city_csv.append(writer)
+        lineCnt.append(0)
+
+    with open("geo_tweets.csv") as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            for i in range(len(cities)):
+                if cities[i] in row["locName"]:
+                    city_csv[i].writerow(row)
+                    lineCnt[i] += 1
+            if "Thiruvananthapuram" in row["locName"]:
+                city_csv[-1].writerow(row)
+                lineCnt[-1] += 1
+
+    a = []
+    for i in range(len(cities)):
+        a.append((lineCnt[i], cities[i]))
+    a.sort()
+    a.reverse()
+    for x in a:
+        print(x[0], x[1])
+
 def main():
     #create_files()
     #geo_sample()
-    parse_files()
+    #parse_files()
+    separate_geo_tweets()
     
 if __name__ == "__main__":
     main()
