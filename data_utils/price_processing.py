@@ -1,7 +1,10 @@
 import csv
 from collections import defaultdict
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
+from scipy import stats
+from sklearn.decomposition import PCA
 
 #DIR = '/mnt/mounted_bucket/'
 DIR = '../../'
@@ -22,14 +25,17 @@ SPIKE = 0.1
 SPIKE_SCALE = 0.1
 
 def parse_file():
-    with open(DIR + 'WFPVAM_FoodPrices_24-01-2017.csv') as csvfile:
+    with open(DIR + 'WFPVAM_FoodPrices_24-01-2017.csv', 'r') as csvfile:
         reader = csv.reader(csvfile, delimiter=',')
-        next(reader, None)
+        header = ', '.join(reader.next()) + '\n'
         india_food_prices = []
-        for row in reader:
-            if (row[1] == 'India'):
-                india_food_prices += [row]
-        return india_food_prices
+        with open(DIR + 'India_Food_Prices.csv', 'w') as output:
+            output.write(header)
+            for row in reader:
+                if (row[1] == 'India'):
+                    india_food_prices += [row]
+                    output.write(', '.join(row) + '\n')
+            return india_food_prices
 
 def output_price_plots(food_to_prices):
     def plot_prices(food, prices, fig_num):
@@ -60,7 +66,7 @@ def output_spike_histogram(spike_freqs):
             freqs[-1] += spike_freqs[spike]
     x = np.arange(len(freqs))
     x_labels = [str(i * 0.1) for i in range(len(freqs) - 1)] + ['>' + str(max_spike)]
-    
+
     def plot_histogram(freqs, x, x_labels, start, fig_num):
         plt.figure(fig_num)
         plt.bar(x, freqs)
@@ -73,6 +79,73 @@ def output_spike_histogram(spike_freqs):
 
     plot_histogram(freqs, x, x_labels, 0.0, 0)
     plot_histogram(freqs[1:], x[1:], x_labels[1:], 0.1, 1)
+
+def output_food_correlations(food_to_prices):
+    def plot(x, y, food1, food2):
+        slope, intercept, r_value, p_value, std_err = stats.linregress(x, y)
+        print food1 + ' ' + food2 + ' r-squared: ', r_value**2
+        plt.plot(x, y, 'o', label='original data')
+        plt.plot(x, intercept + slope*x, 'r', label='fitted line')
+        plt.legend(loc='best')
+        plt.savefig(food1 + '_' + food2 + '.png')
+
+    def get_prices(food1, food2):
+        # return np.array(food_to_prices[food1]['National Average'] 
+                            # + food_to_prices[food2]['National Average'])
+        food1 = food_to_prices[food1]['National Average'] 
+        food2 = food_to_prices[food2]['National Average'] 
+        food1_arr = []
+        food2_arr = []
+        for i in range(1, len(food1)):
+            if i == 3: continue
+            food1_arr.append(food1[i] - food1[i - 1])
+            food2_arr.append(food2[i] - food2[i - 1])
+        return np.array(food1_arr + food2_arr)
+
+    x = [i for i in range(1, 13)]
+    food1 = 'Wheat'
+    food2 = 'Rice'
+    plot(np.array(x + x), get_prices(food1, food2), food1, food2)
+
+def output_pca(food_to_prices):
+    # Get common cities between all foods
+    common_cities = set()
+    for food in food_to_prices:
+        if (len(common_cities) == 0):
+            common_cities = set(food_to_prices[food].keys())
+        else:
+            common_cities &= set(food_to_prices[food].keys())
+    common_cities = list(common_cities)
+    foods = sorted(food_to_prices.keys())
+
+    # 2-d array where A[i][j] = average price of food i in city j
+    A = [[0 for col in range(len(common_cities))] for row in range(len(food_to_prices))]
+    for i, food in enumerate(foods):
+        for j, city in enumerate(common_cities):
+            A[i][j] = float(sum(food_to_prices[food][city]) / len(food_to_prices[food][city]))
+    A = np.array(A)
+
+    # 2-d array where B[i][j] = average price of food j in city i
+    B = [[0 for col in range(len(food_to_prices))] for row in range(len(common_cities))]
+    for i, city in enumerate(common_cities):
+        for j, food in enumerate(foods):
+            B[i][j] = float(sum(food_to_prices[food][city]) / len(food_to_prices[food][city]))
+    B = np.array(B)
+
+    pca = PCA(n_components=2)
+    B_new = pca.fit_transform(B)
+    X = B_new[:,0]
+    Y = B_new[:,1]
+    fig = plt.figure(20)
+    ax = fig.add_subplot(111)
+    for x, y, label in zip(X, Y, common_cities):
+        ax.scatter(x, y, label=label)
+    colormap = plt.cm.gist_ncar 
+    colorst = [colormap(i) for i in np.linspace(0, 0.9,len(ax.collections))]       
+    for t,j1 in enumerate(ax.collections):
+        j1.set_color(colorst[t])
+    ax.legend(fontsize='small')
+    plt.show()
 
 def output_stats(india_food_prices):
     # Extract basic data
@@ -97,6 +170,11 @@ def output_stats(india_food_prices):
             state_to_freq[state] += 1
             distrib_type_to_freq[distrib_type] += 1
 
+    print 'Number of food types: ' + str(len(food_to_freq))
+    print 'Number of cities: ' + str(len(city_to_freq.keys()))
+    print 'Number of states: ' + str(len(state_to_freq.keys()))
+    print 'Number of food-city pairs: ' + str(sum([len(food_to_prices[food]) for food in food_to_prices]))
+
     # Get price spikes and spike frequencies
     food_to_spikes = defaultdict(lambda : defaultdict(int))
     spike_percent_to_freq = defaultdict(int)
@@ -110,8 +188,11 @@ def output_stats(india_food_prices):
                 if (quotient <= (1.0 - SPIKE) or quotient >= (1.0 + SPIKE)):
                     food_to_spikes[food][city] += 1
 
-    output_price_plots(food_to_prices)
+    #output_price_plots(food_to_prices)
     #output_spike_histogram(spike_percent_to_freq)
+    #output_food_correlations(food_to_prices)
+    #output_pca(food_to_prices)
+
 
 def main():
     india_food_prices = parse_file()
