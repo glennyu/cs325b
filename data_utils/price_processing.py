@@ -7,8 +7,10 @@ from scipy import stats
 from sklearn.decomposition import PCA
 from scipy.stats import pearsonr
 
+from util import *
+
 #DIR = '/mnt/mounted_bucket/'
-DIR = './'
+DIR = './../../'
 STATE_COL = 3
 CITY_COL = 5
 FOOD_TYPE_COL = 7
@@ -263,9 +265,10 @@ def output_stats(india_food_prices):
 
 
 def main():
-    india_food_prices = parse_file()
+    # india_food_prices = parse_file()
     india_food_prices = read_file()
     output_stats(india_food_prices)
+    print get_prices('Delhi')
 
 if __name__ == '__main__':
     main()
