@@ -27,6 +27,7 @@ SPIKE_SCALE = 0.1
 
 tweet_cnt = [218054, 219862, 214713, 250476, 261245, 328003, 335138, 340330, 331155, 373601, 386361, 415478, 443676, 267091]
 
+
 def parse_file():
     with open(DIR + 'WFPVAM_FoodPrices_24-01-2017.csv', 'r') as csvfile:
         reader = csv.reader(csvfile, delimiter=',')
@@ -37,8 +38,18 @@ def parse_file():
             for row in reader:
                 if (row[1] == 'India'):
                     india_food_prices += [row]
-                    output.write(', '.join(row) + '\n')
+                    output.write(','.join(row) + '\n')
             return india_food_prices
+
+def read_file():
+    with open(DIR + 'India_Food_Prices.csv', 'r') as csvfile:
+        reader = csv.reader(csvfile, delimiter=',')
+        next(reader, None)
+        india_food_prices = []
+        for row in reader:
+            if (row[1] == 'India'):
+                india_food_prices += [row]
+        return india_food_prices
 
 def output_price_plots(food_to_prices):
     def plot_prices(food, prices, fig_num):
@@ -178,6 +189,18 @@ def output_correlation(food_to_prices):
             plt.title(food + " vs. Tweet Volume")
             plt.savefig(food + "_tweetcnt_correlation.png")
 
+def output_food_city_correlations(food_to_prices):
+    for food in food_to_prices:
+        x = []
+        y = []
+        for city in food_to_prices[food]:
+            if (city == 'National Average'): continue
+            prices = food_to_prices[food][city]
+            x += list(range(1, len(prices) + 1))
+            y += prices
+        slope, intercept, r_value, p_value, std_err = stats.linregress(x, y)
+        print food, r_value, p_value
+
 def output_stats(india_food_prices):
     # Extract basic data
     food_to_freq = defaultdict(int) # Food type frequencies
@@ -201,10 +224,10 @@ def output_stats(india_food_prices):
             state_to_freq[state] += 1
             distrib_type_to_freq[distrib_type] += 1
 
-    print 'Number of food types: ' + str(len(food_to_freq))
-    print 'Number of cities: ' + str(len(city_to_freq.keys()))
-    print 'Number of states: ' + str(len(state_to_freq.keys()))
-    print 'Number of food-city pairs: ' + str(sum([len(food_to_prices[food]) for food in food_to_prices]))
+    # print 'Number of food types: ' + str(len(food_to_freq))
+    # print 'Number of cities: ' + str(len(city_to_freq.keys()))
+    # print 'Number of states: ' + str(len(state_to_freq.keys()))
+    # print 'Number of food-city pairs: ' + str(sum([len(food_to_prices[food]) for food in food_to_prices]))
 
     # Get price spikes and spike frequencies
     food_to_spikes = defaultdict(lambda : defaultdict(int))
@@ -224,10 +247,12 @@ def output_stats(india_food_prices):
     #output_spike_histogram(spike_percent_to_freq)
     #output_food_correlations(food_to_prices)
     #output_pca(food_to_prices)
+    output_food_city_correlations(food_to_prices)
 
 
 def main():
-    india_food_prices = parse_file()
+    # india_food_prices = parse_file()
+    india_food_prices = read_file()
     output_stats(india_food_prices)
 
 if __name__ == '__main__':
