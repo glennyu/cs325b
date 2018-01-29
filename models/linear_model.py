@@ -10,6 +10,7 @@ from nltk.corpus import stopwords
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from nltk.tokenize import word_tokenize
 import numpy as np
+from sklearn.linear_model import Ridge
 import string
 import os
 
@@ -54,4 +55,32 @@ def get_features():
     f_sentiment.close()
     f_cnt.close()
     
-get_features()
+def read_features():
+    sentiment_feat = np.zeros((len(food_names), NUM_MONTHS, 4), dtype=np.float32)
+    food_cnt = np.zeros((len(food_names), NUM_MONTHS), dtype=np.float32)
+    f_sentiment = open("Delhi_sentiment_scores.txt", "r")
+    f_cnt = open("Delhi_food_count.txt", "r")
+    for i in range(len(food_names)):
+        for j in range(NUM_MONTHS):
+            line = f_sentiment.readline().split()
+            sentiment_feat[i][j] = np.array([float(x) for x in line])
+            line = f_cnt.readline()
+            food_cnt[i][j] = float(line)
+    f_sentiment.close()
+    f_cnt.close()
+    return sentiment_feat, food_cnt
+    
+def lin_reg(sentiment_feat, food_cnt):
+    feat = np.hstack((sentiment_feat, food_cnt))
+    Ridge(fit_intercept=False)
+    reg.fit(feat, trainY)
+
+def main():
+    #get_features()
+    sentiment_feat, food_cnt = read_features()
+    for i in range(len(food_names)):
+        lin_reg(sentiment_feat[i:(i + 1)].reshape((NUM_MONTHS, 4)), food_cnt[i:(i + 1)].reshape((NUM_MONTHS, 1)))
+        break
+
+if __name__ == "__main__":
+    main()
