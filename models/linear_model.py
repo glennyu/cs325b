@@ -10,7 +10,7 @@ from nltk.corpus import stopwords
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from nltk.tokenize import word_tokenize
 import numpy as np
-from sklearn.linear_model import Ridge
+from sklearn.linear_model import LinearRegression
 import string
 import os
 import sys
@@ -20,6 +20,8 @@ from util import *
 PATH = '../data_utils/'#'/mnt/mounted_bucket/'
 NUM_MONTHS = 35
 food_names = ['lentils', 'oil', 'wheat', 'salt', 'wheat flour', 'milk', 'sugar', 'black tea', 'potato', 'ghee', 'rice', 'onions', 'tomato']
+food_to_predict = ['Lentils', 'Wheat', 'Salt (iodised)', 'Lentils (masur)', 'Sugar', 'Tea (black)', 'Potatoes', 'Oil (mustard)', 'Rice', 'Onions', 'Milk (pasteurized)', 'Tomatoes']
+food_to_index = [0, 2, 3, 0, 6, 7, 8, 1, 10, 11, 5, 12]
 
 def get_features():
     sid = SentimentIntensityAnalyzer()
@@ -73,40 +75,30 @@ def read_features():
     f_cnt.close()
     return sentiment_feat, food_cnt
 
-# def get_prices(city):
-#     with open(PATH + 'India_Food_Prices.csv', 'r') as csvfile:
-#         reader = csv.reader(csvfile, delimiter=',')
-#         next(reader, None)
-#         food_to_prices = defaultdict(list)
-#         for row in reader:
-#             if (row[CITY_COL] == city):
-#                 month, year = int(row[MONTH_COL]), int(row[YEAR_COL])
-#                 if ((year >= START_YEAR and year < END_YEAR) or (year == END_YEAR and month <= END_MONTH)):
-#                     food = row[FOOD_TYPE_COL]
-#                     price = float(row[FOOD_PRICE_COL])
-#                     food_to_prices[food].append(price)
+def lin_reg(sentiment_feat, food_cnt, prices):
+    feat = np.hstack((sentiment_feat, np.expand_dims(food_cnt, axis=1)))
+    train_feat, test_feat = feat[:24], feat[24:]
+    train_prices, test_prices = prices[:24], prices[24:]
 
-#         city_prices = []
-#         for food in food_to_prices:	   
-#             city_prices.append([food] + food_to_prices[food])
-#         city_prices = np.array(city_prices)
-#         assert(city_prices.shape == (21, 36))
-#         return city_prices
-
-def lin_reg(sentiment_feat, food_cnt):
-    feat = np.hstack((sentiment_feat, food_cnt))
-    prices = get_prices("Delhi")
-    print(prices)
-    Ridge(fit_intercept=False)
-    reg.fit(feat, prices)
-    print(reg.coef_)
-    print(reg.score(feat, prices))
+    reg = LinearRegression()
+    reg.fit(train_feat, train_prices)
+    #print(reg.coef_)
+    #print("score: %f" % reg.score(train_feat, train_prices))
+    pred = np.squeeze(reg.predict(test_feat))
+    #print("predictions:")
+    #print(pred)
+    #print("actual:")
+    #print(np.squeeze(test_prices))
+    print("MAPE: %f" % mape(np.squeeze(test_prices), pred)) 
 
 def main():
     #get_features()
     sentiment_feat, food_cnt = read_features()
-    #for i in range(len(food_names)):
-    lin_reg(sentiment_feat[11:12].reshape((NUM_MONTHS, 4)), food_cnt[11:12].reshape((NUM_MONTHS, 1)))
+    prices = get_prices("Delhi")
+    for i in range(len(food_to_predict)):
+        idx = food_to_index[i]
+        print(food_to_predict[i])
+        lin_reg(np.squeeze(sentiment_feat[idx:(idx + 1)]), np.squeeze(food_cnt[idx:(idx + 1)]), prices[i:(i + 1)].T)
 
 if __name__ == "__main__":
     main()
