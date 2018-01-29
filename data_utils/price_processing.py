@@ -27,6 +27,9 @@ SPIKE_SCALE = 0.1
 
 tweet_cnt = [218054, 219862, 214713, 250476, 261245, 328003, 335138, 340330, 331155, 373601, 386361, 415478, 443676, 267091]
 
+SOUTHERN_CITIES = ['Port Blair', 'T.Puram', 'Ernakulam', 'Dindigul', 'Kozhikode', 'Tiruchirappalli', 'Puducherry', 'Bengaluru', 'Chennai',
+                    'Srinagar', 'Hyderabad', 'Dharwad', 'Panaji', 'Mumbai', 'Raipur', 'Bhubaneswar', 'Sambalpur', 'Nagpur', 'Rajkot', 'Ahmedabad'
+                    'Bhopal', 'Jabalpur', 'Rourkela', 'Kolkata', 'Ranchi', 'Agartala', 'Aizwal']
 
 def parse_file():
     with open(DIR + 'WFPVAM_FoodPrices_24-01-2017.csv', 'r') as csvfile:
@@ -191,15 +194,24 @@ def output_correlation(food_to_prices):
 
 def output_food_city_correlations(food_to_prices):
     for food in food_to_prices:
-        x = []
-        y = []
+        x1 = []
+        y1 = []
+        x2 = []
+        y2 = []
         for city in food_to_prices[food]:
             if (city == 'National Average'): continue
             prices = food_to_prices[food][city]
-            x += list(range(1, len(prices) + 1))
-            y += prices
-        slope, intercept, r_value, p_value, std_err = stats.linregress(x, y)
-        print food, r_value, p_value
+            if (city in SOUTHERN_CITIES):
+                x1 += list(range(1, len(prices) + 1))
+                y1 += prices
+            else:
+                x2 += list(range(1, len(prices) + 1))
+                y2 += prices
+
+    slope, intercept, r_value, p_value, std_err = stats.linregress(x1, y1)
+    slope2, intercept2, r_value2, p_value2, std_err2 = stats.linregress(x2, y2)
+    print 'Southern', r_value, p_value
+    print 'Northern', r_value2, p_value2
 
 def output_stats(india_food_prices):
     # Extract basic data
@@ -217,6 +229,8 @@ def output_stats(india_food_prices):
             city = row[CITY_COL]
             state = row[STATE_COL]
             distrib_type = row[DISTRIB_TYPE_COL]
+            if (food_type == 'Wheat' and city == 'Aizwal'):
+                print month, year
 
             food_to_freq[food_type] += 1
             food_to_prices[food_type][city].append(price)
@@ -251,7 +265,7 @@ def output_stats(india_food_prices):
 
 
 def main():
-    # india_food_prices = parse_file()
+    india_food_prices = parse_file()
     india_food_prices = read_file()
     output_stats(india_food_prices)
 
