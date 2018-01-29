@@ -1,6 +1,6 @@
 import matplotlib
 matplotlib.use('Agg')
-import collections
+from collections import defaultdict
 import csv
 import dateutil.parser
 import html
@@ -69,18 +69,41 @@ def read_features():
     f_sentiment.close()
     f_cnt.close()
     return sentiment_feat, food_cnt
-    
+
+def get_prices(city):
+    with open(PATH + 'India_Food_Prices.csv', 'r') as csvfile:
+        reader = csv.reader(csvfile, delimiter=',')
+        next(reader, None)
+        food_to_prices = defaultdict(list)
+        for row in reader:
+            if (row[CITY_COL] == city):
+                month, year = int(row[MONTH_COL]), int(row[YEAR_COL])
+                if ((year >= START_YEAR and year < END_YEAR) or (year == END_YEAR and month <= END_MONTH)):
+                    food = row[FOOD_TYPE_COL]
+                    price = float(row[FOOD_PRICE_COL])
+                    food_to_prices[food].append(price)
+
+        city_prices = []
+        for food in food_to_prices:	   
+            city_prices.append([food] + food_to_prices[food])
+        city_prices = np.array(city_prices)
+        assert(city_prices.shape == (21, 36))
+        return city_prices
+
 def lin_reg(sentiment_feat, food_cnt):
     feat = np.hstack((sentiment_feat, food_cnt))
+    prices = get_prices("Delhi")
+    print(prices)
     Ridge(fit_intercept=False)
-    reg.fit(feat, trainY)
+    reg.fit(feat, prices)
+    print(reg.coef_)
+    print(reg.score(feat, prices))
 
 def main():
     #get_features()
     sentiment_feat, food_cnt = read_features()
-    for i in range(len(food_names)):
-        lin_reg(sentiment_feat[i:(i + 1)].reshape((NUM_MONTHS, 4)), food_cnt[i:(i + 1)].reshape((NUM_MONTHS, 1)))
-        break
+    #for i in range(len(food_names)):
+    lin_reg(sentiment_feat[11:12].reshape((NUM_MONTHS, 4)), food_cnt[11:12].reshape((NUM_MONTHS, 1)))
 
 if __name__ == "__main__":
     main()

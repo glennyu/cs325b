@@ -37,8 +37,8 @@ def get_prices(city):
                     food_to_prices[food].append(price)
 
 	city_prices = []
-        for food in food_to_prices:	   
-            city_prices.append([food] + food_to_prices[food])
-        city_prices = np.array(city_prices)
+    for food in food_to_prices:	   
+        city_prices.append([food] + food_to_prices[food])
+    city_prices = np.array(city_prices)
 	assert(city_prices.shape == (21, 36))
-        return city_prices
+    return city_prices
