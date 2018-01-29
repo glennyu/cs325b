@@ -1,11 +1,17 @@
 import csv 
 
+CITY_COL = 5
+FOOD_TYPE_COL = 7
 MONTH_COL = 14
 YEAR_COL = 15
+FOOD_PRICE_COL = 16
+
 START_MONTH = 1
 START_YEAR = 2014
 END_MONTH = 11
 END_YEAR = 2016
+
+transportation = ['transport', 'strike', 'hike', 'import', 'sack', 'scam', 'rail', 'export', 'import']
 
 # Input: A = array of true values, F = array of corresponding forecasted values
 # Returns MAPE metric
@@ -15,15 +21,24 @@ def mape(A, F):
 		total += abs(1.0 * (A[i] - F[i]) / A[i])
 	return 1.0 * total / len(A)
 
-# Returns all prices in India from 01/2014 to 11/2016
-def get_prices():
+# Returns all prices in city from 01/2014 to 11/2016
+def get_prices(city):
     with open(DIR + 'India_Food_Prices.csv', 'r') as csvfile:
         reader = csv.reader(csvfile, delimiter=',')
         next(reader, None)
-        india_food_prices = []
+        food_to_prices = defaultdict(list)
         for row in reader:
-            month, year = int(row[MONTH_COL]), int(row[YEAR_COL])
-        	if ((year >= START_YEAR and year < END_YEAR) 
-                or (year == END_YEAR and month <= END_MONTH)):
-                india_food_prices += [row]
-        return india_food_prices
+            if (row[CITY_COL] == city):
+	        month, year = int(row[MONTH_COL]), int(row[YEAR_COL])
+                if ((year >= START_YEAR and year < END_YEAR) 	          
+                        or (year == END_YEAR and month <= END_MONTH)):
+                    food = row[FOOD_TYPE_COL]
+	    	    price = float(row[FOOD_PRICE_COL])
+                    food_to_prices[food].append(price)
+
+	city_prices = []
+        for food in food_to_prices:	   
+            city_prices.append([food] + food_to_prices[food])
+        city_prices = np.array(city_prices)
+	assert(city_prices.shape == (21, 36))
+        return city_prices

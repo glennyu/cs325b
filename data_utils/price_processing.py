@@ -229,8 +229,6 @@ def output_stats(india_food_prices):
             city = row[CITY_COL]
             state = row[STATE_COL]
             distrib_type = row[DISTRIB_TYPE_COL]
-            if (food_type == 'Wheat' and city == 'Aizwal'):
-                print month, year
 
             food_to_freq[food_type] += 1
             food_to_prices[food_type][city].append(price)
