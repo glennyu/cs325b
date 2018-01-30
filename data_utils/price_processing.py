@@ -196,6 +196,8 @@ def output_correlation(food_to_prices):
 
 def output_food_city_correlations(food_to_prices):
     for food in food_to_prices:
+        x = []
+        y = []
         x1 = []
         y1 = []
         x2 = []
@@ -203,17 +205,30 @@ def output_food_city_correlations(food_to_prices):
         for city in food_to_prices[food]:
             if (city == 'National Average'): continue
             prices = food_to_prices[food][city]
+            price_differences = []
+            for i in range(1, len(prices)):
+                price_differences.append(prices[i] - prices[i - 1])
             if (city in SOUTHERN_CITIES):
-                x1 += list(range(1, len(prices) + 1))
-                y1 += prices
+                # x1 += list(range(1, len(prices) + 1))
+                # y1 += prices
+                x1 += list(range(1, len(prices)))
+                y1 += price_differences
             else:
-                x2 += list(range(1, len(prices) + 1))
-                y2 += prices
+                # x2 += list(range(1, len(prices) + 1))
+                # y2 += prices
+                x2 += list(range(1, len(prices)))
+                y2 += price_differences
+            # x += list(range(1, len(prices) + 1))
+            # y += prices
+            x += list(range(1, len(prices)))
+            y += price_differences
+        slope, intercept, r_value, p_value, std_err = stats.linregress(x, y)
+        print food, r_value ** 2, p_value
 
-    slope, intercept, r_value, p_value, std_err = stats.linregress(x1, y1)
-    slope2, intercept2, r_value2, p_value2, std_err2 = stats.linregress(x2, y2)
-    print 'Southern', r_value, p_value
-    print 'Northern', r_value2, p_value2
+        slope, intercept, r_value, p_value, std_err = stats.linregress(x1, y1)
+        slope2, intercept2, r_value2, p_value2, std_err2 = stats.linregress(x2, y2)
+        print 'Southern', food, r_value ** 2, p_value
+        print 'Northern', food, r_value2 ** 2, p_value2
 
 def output_stats(india_food_prices):
     # Extract basic data
@@ -268,7 +283,6 @@ def main():
     # india_food_prices = parse_file()
     india_food_prices = read_file()
     output_stats(india_food_prices)
-    print get_prices('Delhi')
 
 if __name__ == '__main__':
     main()
