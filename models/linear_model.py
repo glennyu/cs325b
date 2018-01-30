@@ -85,14 +85,10 @@ def lin_reg(food_idx, sentiment_feat, food_cnt, prices):
     print(food_to_predict[food_idx])
     #print(reg.coef_)
     print("score: %f" % reg.score(train_feat, train_prices))
-    pred = np.squeeze(reg.predict(test_feat))
-    #print("predictions:")
-    #print(pred)
-    #print("actual:")
-    #print(np.squeeze(test_prices))
-    print("MAPE: %f" % mape(np.squeeze(test_prices), pred)) 
-    plot_price_trend(2*food_idx, np.squeeze(reg.predict(train_feat)), np.squeeze(train_prices), food_to_predict[food_idx] + "_train_sentiment")
-    plot_price_trend(2*food_idx + 1, pred, np.squeeze(test_prices), food_to_predict[food_idx] + "_test_sentiment")
+    pred = reg.predict(test_feat)
+    print("MAPE: %f" % mape(test_prices, pred)) 
+    plot_price_trend(2*food_idx, reg.predict(train_feat), train_prices, food_to_predict[food_idx] + "_train_sentiment")
+    plot_price_trend(2*food_idx + 1, pred, test_prices, food_to_predict[food_idx] + "_test_sentiment")
 
 def main():
     #get_features()
@@ -100,7 +96,7 @@ def main():
     prices = get_prices("Delhi")
     for i in range(len(food_to_predict)):
         idx = food_to_index[i]
-        lin_reg(i, sentiment_feat[idx], np.squeeze(food_cnt[idx:(idx + 1)]), prices[i:(i + 1)].T)
+        lin_reg(i, sentiment_feat[idx], food_cnt[idx], prices[i].T)
 
 if __name__ == "__main__":
     main()
