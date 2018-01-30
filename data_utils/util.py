@@ -59,4 +59,4 @@ def plot_price_trend(fignum, prediction, true_price, title):
     plt.xlabel('Month')
     plt.ylabel('Price')
     plt.title(title)
-    plt.savefig('../graphs/' + title + '.png')
+    plt.savefig(title + '.png')
