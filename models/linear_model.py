@@ -10,7 +10,7 @@ from nltk.corpus import stopwords
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from nltk.tokenize import word_tokenize
 import numpy as np
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import Ridge
 import string
 import os
 import sys
@@ -75,21 +75,20 @@ def read_features():
     f_cnt.close()
     return sentiment_feat, food_cnt
 
-def lin_reg(sentiment_feat, food_cnt, prices):
+def lin_reg(food_idx, sentiment_feat, food_cnt, prices):
     feat = np.hstack((sentiment_feat, np.expand_dims(food_cnt, axis=1)))
     train_feat, test_feat = feat[:24], feat[24:]
     train_prices, test_prices = prices[:24], prices[24:]
 
-    reg = LinearRegression()
+    reg = Ridge()
     reg.fit(train_feat, train_prices)
+    print(food_to_predict[food_idx])
     #print(reg.coef_)
-    #print("score: %f" % reg.score(train_feat, train_prices))
-    pred = np.squeeze(reg.predict(test_feat))
-    #print("predictions:")
-    #print(pred)
-    #print("actual:")
-    #print(np.squeeze(test_prices))
-    print("MAPE: %f" % mape(np.squeeze(test_prices), pred)) 
+    print("score: %f" % reg.score(train_feat, train_prices))
+    pred = reg.predict(test_feat)
+    print("MAPE: %f" % mape(test_prices, pred)) 
+    plot_price_trend(2*food_idx, reg.predict(train_feat), train_prices, food_to_predict[food_idx] + "_train_sentiment")
+    plot_price_trend(2*food_idx + 1, pred, test_prices, food_to_predict[food_idx] + "_test_sentiment")
 
 def main():
     #get_features()
@@ -97,8 +96,7 @@ def main():
     prices = get_prices("Delhi")
     for i in range(len(food_to_predict)):
         idx = food_to_index[i]
-        print(food_to_predict[i])
-        lin_reg(np.squeeze(sentiment_feat[idx:(idx + 1)]), np.squeeze(food_cnt[idx:(idx + 1)]), prices[i:(i + 1)].T)
+        lin_reg(i, sentiment_feat[idx], food_cnt[idx], prices[i].T)
 
 if __name__ == "__main__":
     main()

@@ -1,3 +1,6 @@
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 from collections import defaultdict
 import csv 
 import numpy as np
@@ -45,3 +48,13 @@ def get_prices(city):
         city_prices = np.asarray(city_prices)
         assert(city_prices.shape == (len(food_to_predict), 35))
         return city_prices
+
+def plot_price_trend(fignum, prediction, true_price, title):
+    plt.figure(fignum)
+    plt.plot(np.arange(1, prediction.shape[0] + 1), prediction, '-b', label='Predictions')
+    plt.plot(np.arange(1, true_price.shape[0] + 1), true_price, '-r', label='True Price')
+    plt.legend()
+    plt.xlabel('Month')
+    plt.ylabel('Price')
+    plt.title(title)
+    plt.savefig(title + '.png')
