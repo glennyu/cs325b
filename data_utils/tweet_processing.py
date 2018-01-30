@@ -146,19 +146,11 @@ def separate_geo_tweets():
                 city_csv[-1].writerow(row)
                 lineCnt[-1] += 1
 
-    a = []
-    for i in range(len(cities)):
-        a.append((lineCnt[i], cities[i]))
-    a.sort()
-    a.reverse()
-    for x in a:
-        print(x[0], x[1])
-
 def main():
     #create_files()
     #geo_sample()
     #parse_files()
-    separate_geo_tweets()
+    #separate_geo_tweets()
     
 if __name__ == "__main__":
     main()

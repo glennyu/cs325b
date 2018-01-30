@@ -13,7 +13,7 @@ START_YEAR = 2014
 END_MONTH = 11
 END_YEAR = 2016
 
-PATH = './../../'
+PATH = '../data_utils/'
 
 transportation = ['transport', 'strike', 'hike', 'import', 'sack', 'scam', 'rail', 'export', 'import']
 
@@ -21,9 +21,11 @@ transportation = ['transport', 'strike', 'hike', 'import', 'sack', 'scam', 'rail
 # Returns MAPE metric
 def mape(A, F):
 	total = 0
-	for i in range(len(A)):
+	for i in range(A.shape[0]):
 		total += abs(1.0 * (A[i] - F[i]) / A[i])
-	return 1.0 * total / len(A)
+	return 1.0 * total / A.shape[0]
+
+food_to_predict = ['Lentils', 'Wheat', 'Salt (iodised)', 'Lentils (masur)', 'Sugar', 'Tea (black)', 'Potatoes', 'Oil (mustard)', 'Rice', 'Onions', 'Milk (pasteurized)', 'Tomatoes']
 
 # Returns all prices in city from 01/2014 to 11/2016
 def get_prices(city):
@@ -40,9 +42,8 @@ def get_prices(city):
                     food_to_prices[food].append(price)
 
         city_prices = []
-        for food in food_to_prices:    
-            city_prices.append([food] + food_to_prices[food])
+        for food in food_to_predict:
+            city_prices.append(food_to_prices[food])
         city_prices = np.asarray(city_prices)
-        print city_prices.shape
-        assert(city_prices.shape == (21, 36))
+        assert(city_prices.shape == (len(food_to_predict), 35))
         return city_prices
