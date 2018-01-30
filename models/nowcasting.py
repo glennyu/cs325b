@@ -1,6 +1,7 @@
 import csv
 import nltk
 import html
+from tqdm import tqdm
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from nltk.tokenize import TweetTokenizer
@@ -32,9 +33,9 @@ class NowcastingModel(object):
 
         with open(filename) as csvfile:
             csvreader = csv.DictReader(csvfile)
-            i = 0
+            # i = 0
             for row in csvreader:
-                tokens = tokenizer.tokenize(html.unescape(row["tweet"]).lower())
+                tokens = tokenizer.tokenize(html.unescape(row["tweet"]).lower().replace('/', ' ')) # replaces '/'' with ' ' so 'price/unit' can get tokenized into a price and a unit
                 tweet_object = {
                     "tweet": tokens, 
                     "postedTime": row["postedTime"],
@@ -44,9 +45,9 @@ class NowcastingModel(object):
                     "lat": row["lat"]
                 }
                 tweets.append(tweet_object)
-                i += 1
-                if i == 10:
-                    break
+                # i += 1
+                # if i == 10:
+                #     break
         self.tweets = tweets
 
 
@@ -56,7 +57,7 @@ class NowcastingModel(object):
         Returns: list of strings, where each string is a lowercase tweet
         '''
         relevant_tweets = []
-        for tweet_object in self.tweets:
+        for tweet_object in tqdm(self.tweets):
             tweet = tweet_object["tweet"]
             contains_food_word = False
             contains_digit = False
@@ -89,12 +90,12 @@ class NowcastingModel(object):
 
 
 def main():
-    mumbai_model = NowcastingModel("Mumbai")
-    mumbai_model.create_tweets_matrix('data/csv/Mumbai_tweets.csv')
-    relevant_tweets = mumbai_model.get_relevant_tweets()
+    model = NowcastingModel("Delhi")
+    model.create_tweets_matrix('data/csv/Delhi_tweets.csv')
+    relevant_tweets = model.get_relevant_tweets()
 
-    print(mumbai_model.get_relevant_tweets())
-    mumbai_model.write_tweets_to_file(relevant_tweets, "Relevant_tweets.csv")
+    print(model.get_relevant_tweets())
+    model.write_tweets_to_file(relevant_tweets, "Relevant_tweets.csv")
 
 if __name__ == "__main__":
     main()
