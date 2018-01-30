@@ -13,9 +13,7 @@ START_YEAR = 2014
 END_MONTH = 11
 END_YEAR = 2016
 
-PATH = '../data_utils/'
-
-transportation = ['transport', 'strike', 'hike', 'import', 'sack', 'scam', 'rail', 'export', 'import']
+PATH = '../../' #'../data_utils/'
 
 # Input: A = array of true values, F = array of corresponding forecasted values
 # Returns MAPE metric
