@@ -103,6 +103,7 @@ def count_tweets():
             for j in range(35):
                 f_cnt.write(" %d" % food_cnt[i][j])
             f_cnt.write("\n")
+        print "finished", city
     f_cnt.close()
 
 #count_prices()
