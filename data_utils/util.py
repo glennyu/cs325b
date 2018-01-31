@@ -3,6 +3,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from collections import defaultdict
 import csv 
+import dateutil.parser
 import numpy as np
 
 CITY_COL = 5
@@ -58,3 +59,51 @@ def plot_price_trend(fignum, prediction, true_price, title):
     plt.ylabel('Price')
     plt.title(title)
     plt.savefig(title + '.png')
+
+def count_prices():
+    foods_to_predict = ['Lentils', 'Salt (iodised)', 'Sugar', 'Tea (black)', 'Potatoes', 'Rice', 'Onions', 'Tomatoes']
+    cities_to_predict = ['Mumbai', 'Delhi', 'Bengaluru', 'Kolkata', 'Hyderabad', 'Lucknow', 'Jaipur', 'Chandigarh', 'Chennai', 'Bhubaneshwar', 'Jammu', 'Bhopal', 'Patna', 'Indore', 'Nagpur', 'Kanpur', 'Ludhiana', 'Varanasi', 'Guwahati', 'Dehradun', 'Jodhpur', 'Cuttack']
+    
+    with open('India_Food_Prices.csv', 'r') as csvfile:
+        reader = csv.reader(csvfile, delimiter=',')
+        next(reader, None)
+        food_to_prices = defaultdict(int)
+        for row in reader:
+            if (row[CITY_COL] in cities_to_predict):
+                month, year = int(row[MONTH_COL]), int(row[YEAR_COL])
+                if ((year >= START_YEAR and year < END_YEAR) or (year == END_YEAR and month <= END_MONTH)):
+                    food = row[FOOD_TYPE_COL]
+                    if row[CITY_COL] == "Varanasi" and 'Salt' in food:
+                        print row
+                    if food in foods_to_predict:
+                        food_to_prices[food] += 1
+        for k, v in food_to_prices.iteritems():
+            print k, v
+
+def count_tweets():
+    foods_to_predict = ['lentil', 'salt', 'sugar', 'black tea', 'tea', 'potato', 'rice', 'onion', 'tomato']
+    cities_to_predict = ['Mumbai', 'Delhi', 'Bengaluru', 'Kolkata', 'Hyderabad', 'Lucknow', 'Jaipur', 'Chandigarh', 'Chennai', 'Bhubaneshwar', 'Jammu', 'Bhopal', 'Patna', 'Indore', 'Nagpur', 'Kanpur', 'Ludhiana', 'Varanasi', 'Guwahati', 'Dehradun', 'Jodhpur', 'Cuttack']
+    
+    f_cnt = open("food_count.txt", "w")
+    for city in cities_to_predict:
+        f_cnt.write("%s\n" % city)
+        food_cnt = np.zeros((len(foods_to_predict), 35), dtype=np.int32)
+        with open(city + "_tweets.csv") as csvfile:
+            reader = csv.DictReader(csvfile)
+            for row in reader:
+                date = dateutil.parser.parse(row["postedTime"])
+                date_index = (date.year - 2014)*12 + (date.month - 1)
+                tweet = row["tweet"].lower()
+                for i in range(len(foods_to_predict)):
+                    if foods_to_predict[i] in tweet:
+                        food_cnt[i][date_index] += 1
+
+        for i in range(len(foods_to_predict)):
+            f_cnt.write("%s:" % foods_to_predict[i])
+            for j in range(35):
+                f_cnt.write(" %d" % food_cnt[i][j])
+            f_cnt.write("\n")
+    f_cnt.close()
+
+#count_prices()
+count_tweets()
