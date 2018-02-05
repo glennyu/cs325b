@@ -7,7 +7,7 @@ from scipy import stats
 from sklearn.decomposition import PCA
 from scipy.stats import pearsonr
 
-from util import *
+# from util import *
 
 #DIR = '/mnt/mounted_bucket/'
 DIR = './../../'
@@ -230,6 +230,17 @@ def output_food_city_correlations(food_to_prices):
         print 'Southern', food, r_value ** 2, p_value
         print 'Northern', food, r_value2 ** 2, p_value2
 
+# NOTE: Missing first month -- need to manually record
+def output_food_city_dev(food_to_prices):
+    food = 'Onions'
+    city = 'Delhi'
+    prices = food_to_prices[food][city]
+    deviations = []
+    for i in range(1, len(prices)):
+        deviations.append(str(float(prices[i] - prices[i - 1]) / prices[i - 1]))
+    with open('price_deviations.txt', 'w') as output:
+        output.write('\t'.join(deviations))
+
 def output_stats(india_food_prices):
     # Extract basic data
     food_to_freq = defaultdict(int) # Food type frequencies
@@ -276,7 +287,8 @@ def output_stats(india_food_prices):
     #output_spike_histogram(spike_percent_to_freq)
     #output_food_correlations(food_to_prices)
     #output_pca(food_to_prices)
-    output_food_city_correlations(food_to_prices)
+    #output_food_city_correlations(food_to_prices)
+    output_food_city_dev(food_to_prices) # output percent deviations in prices
 
 
 def main():
