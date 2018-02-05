@@ -3,7 +3,7 @@
     "train_size": 3,
     "eval_size": 3,
 
-    "model_version": "lstm",
+    "model_version": "lstm1",
     "lstm_num_units": 50,
     "embedding_size": 50,
 

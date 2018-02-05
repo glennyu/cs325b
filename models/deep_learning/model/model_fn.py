@@ -2,7 +2,6 @@
 
 import tensorflow as tf
 
-
 def build_model(mode, inputs, params):
     """Compute logits of the model (output distribution)
 
@@ -15,9 +14,14 @@ def build_model(mode, inputs, params):
     Returns:
         output: (tf.Tensor) output of the model
     """
-    tweets = inputs['tweets'] #(batch_size, tweet_batch, tweet_length)
-    averaged_tweets = tf.reduce_mean(tweets, axis=1) #(batch_size, tweet_length)
-    predictions = tf.layers.dense(averaged_tweets, 1)
+    tweets = inputs['tweets'] # (batch_size, tweet_batch, tweet_length)
+
+    if params.model_version == "lstm1":
+        averaged_tweets = tf.reduce_mean(tweets, axis=1, keepdims=True) # (batch_size, tweet_length)
+        lstm_cell = tf.nn.rnn_cell.BasicLSTMCell(params.lstm_num_units)
+        output, _ = tf.nn.dynamic_rnn(lstm_cell, averaged_tweets, dtype=tf.float32)
+
+    predictions = tf.layers.dense(output, 1)
     return predictions
 
 def model_fn(mode, inputs, params, reuse=False):
