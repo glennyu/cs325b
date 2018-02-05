@@ -1,2 +1,4 @@
 *.DS_Store
 *.csv
+.ipynb_checkpoints
+__pycache__
