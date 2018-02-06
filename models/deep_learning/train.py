@@ -43,10 +43,10 @@ if __name__ == '__main__':
 
     # Get paths for dataset
     path_train_embeddings = os.path.join(args.data_dir, 'embeddings/')
-    path_train_batches = os.path.join(args.data_dir, 'batches/')
+    path_train_batches = os.path.join(args.data_dir, 'batches_train/')
     path_train_prices = os.path.join(args.data_dir, 'price_deviations.txt')
     path_eval_embeddings = os.path.join(args.data_dir, 'embeddings/')
-    path_eval_batches = os.path.join(args.data_dir, 'batches/')
+    path_eval_batches = os.path.join(args.data_dir, 'batches_val/')
     path_eval_prices = os.path.join(args.data_dir, 'price_deviations.txt')
     path_word_embeddings = os.path.join(args.data_dir, 'glove.twitter.27B.50d.txt')
     
