@@ -95,8 +95,8 @@ def train_and_evaluate(train_model_spec, eval_model_spec, model_dir, params, res
             train_sess(sess, train_model_spec, num_steps, train_writer, params)
 
             # Save weights
-            last_save_path = os.path.join(model_dir, 'last_weights', 'after-epoch')
-            last_saver.save(sess, last_save_path, global_step=epoch + 1)
+            # last_save_path = os.path.join(model_dir, 'last_weights', 'after-epoch')
+            # last_saver.save(sess, last_save_path, global_step=epoch + 1)
 
             # Evaluate for one epoch on validation set
             num_steps = (params.eval_size + params.batch_size - 1) // params.batch_size
