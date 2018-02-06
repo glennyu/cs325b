@@ -1,44 +1,69 @@
 """Create the input data pipeline using `tf.data`"""
 
 import tensorflow as tf
+import numpy as np
+
+NUM_MONTHS = 2
 
 def pad_tweets(tweets):
     for batch in tweets:
         for tweet in batch:
-            while (len(tweet) < 30):
+            while (len(tweet) < 50):
                 tweet.append(0)
-    return tweets
+            tweet = tweet[:50]
+    return np.array(tweets)
 
 def get_tweet_len(tweets):
     tweet_len = [[len(tweet) for tweet in batch] for batch in tweets]
     return tweet_len
 
-def load_tweets(path):
+def load_tweets_and_prices(path_embeddings, path_batches, path_prices):
     """Create tf.data Instance from txt file
 
     Args:
-        path: (string) path containing one example per line
+        path_embeddings: (string) path to embeddings
+        path_batches: (string) path to batches
+        path_prices: (string) path to prices
 
     Returns:
-        tweets: (tf.Dataset) yielding list of ids of tokens and lengths for each example
+        tweets, prices: (tf.Dataset) yielding list of tweet tokens, lengths, and price deviations
     """
-    tweets = [[[3, 10, 2, 10], [20, 25, 1]], [[6, 11, 4, 20, 1], [2, 5, 12]], [[7, 1], [2, 8, 9, 1, 4]]]
-    tweet_len = tf.data.Dataset.from_tensor_slices(get_tweet_len(tweets))
-    tweets = tf.data.Dataset.from_tensor_slices(tf.constant(pad_tweets(tweets), dtype=tf.float32))
+    tweets, prices = [], []
+    with open(path_prices, "r") as pricef:
+        p_dev = [float(p) for p in pricef.readline().strip('\n').split('\t')]
+        for i in range(NUM_MONTHS):
+            month_tweets = []
+            with open(path_embeddings + str(i) + "_embeddings_delhi.csv", "r") as embf:
+                for tweet in embf:
+                    month_tweets.append([int(num) for num in tweet.split(',')])
+            with open(path_batches + str(i) + "_batches_delhi.txt", "r") as batchf:
+                for batch in batchf:
+                    tweets.append([month_tweets[int(idx)] for idx in batch.split('\t')])
+                    prices.append(p_dev[i])
+
+    tweet_len = tf.data.Dataset.from_tensor_slices(tf.constant(get_tweet_len(tweets), dtype=tf.int32))
+    tweets = tf.data.Dataset.from_tensor_slices(tf.constant(pad_tweets(tweets), dtype=tf.int32))
     tweets = tf.data.Dataset.zip((tweets, tweet_len))
-    return tweets
+    prices = tf.data.Dataset.from_tensor_slices(tf.constant(prices, dtype=tf.float32))
+    return tweets, prices
 
-def load_prices(path):
-    """Create tf.data Instance from txt file
+def load_word_embeddings(path_word_embeddings, params):
+    """Create np array of word embeddings
 
     Args:
-        path: (string) path containing one price per line
+        path_word_embeddings: (string) path to word embeddings
 
     Returns:
-        prices: (tf.Dataset) yielding list of prices
+        tweets: (np.array) yielding np array of word embeddings
     """
-    prices = tf.data.Dataset.from_tensor_slices(tf.constant([3.28, 9.4, 8.2, 2.3], dtype=tf.float32))
-    return prices
+    word_embeddings = []
+    with open (path_word_embeddings, "r") as f:
+        for line in f:
+            word_embeddings.append([float(x) for x in line.split()[1:]])
+            while (len(word_embeddings[-1]) < params.embedding_size):
+                word_embeddings[-1].append(0.0)
+            word_embeddings[-1] = word_embeddings[-1][:params.embedding_size]
+    return np.array(word_embeddings)
 
 def input_fn(mode, tweets, prices, params):
     """Input function

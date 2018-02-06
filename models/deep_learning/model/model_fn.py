@@ -2,11 +2,12 @@
 
 import tensorflow as tf
 
-def build_model(mode, inputs, params):
+def build_model(mode, word_embeddings, inputs, params):
     """Compute logits of the model (output distribution)
 
     Args:
         mode: (string) 'train', 'eval', etc.
+        word_embeddings: GloVe word embeddings
         inputs: (dict) contains the inputs of the graph (features, labels...)
                 this can be `tf.placeholder` or outputs of `tf.data`
         params: (Params) contains hyperparameters of the model (ex: `params.learning_rate`)
@@ -17,18 +18,28 @@ def build_model(mode, inputs, params):
     tweets = inputs['tweets'] # (batch_size, tweet_batch, tweet_length)
 
     if params.model_version == "lstm1":
-        averaged_tweets = tf.reduce_mean(tweets, axis=1, keepdims=True) # (batch_size, tweet_length)
+        embeddings = tf.constant(word_embeddings, dtype=tf.float32)
+        tweets = tf.nn.embedding_lookup(embeddings, tweets)
+        
+        reshaped_tweets = tf.reshape(tweets, (-1, 50, params.embedding_size))
+        tweet_len = inputs['tweet_lengths']
+        reshaped_tweet_len = tf.reshape(tweet_len, (-1,))
+        
         lstm_cell = tf.nn.rnn_cell.BasicLSTMCell(params.lstm_num_units)
-        output, _ = tf.nn.dynamic_rnn(lstm_cell, averaged_tweets, dtype=tf.float32)
+        output, _ = tf.nn.dynamic_rnn(lstm_cell, reshaped_tweets, sequence_length=reshaped_tweet_len, dtype=tf.float32)
+        output = tf.reshape(output, (-1, params.tweet_batch_size, params.lstm_num_units))
+        
+        averaged_output = tf.reduce_mean(output, axis=1)
+        hidden_layer = tf.layers.dense(averaged_output, 20)
+        predictions = tf.layers.dense(hidden_layer, 1)
+        return predictions
 
-    predictions = tf.layers.dense(output, 1)
-    return predictions
-
-def model_fn(mode, inputs, params, reuse=False):
+def model_fn(mode, word_embeddings, inputs, params, reuse=False):
     """Model function defining the graph operations.
 
     Args:
         mode: (string) 'train', 'eval', etc.
+        word_embeddings: GloVe word embeddings
         inputs: (dict) contains the inputs of the graph (features, labels...)
                 this can be `tf.placeholder` or outputs of `tf.data`
         params: (Params) contains hyperparameters of the model (ex: `params.learning_rate`)
@@ -44,7 +55,7 @@ def model_fn(mode, inputs, params, reuse=False):
     # MODEL: define the layers of the model
     with tf.variable_scope('model', reuse=reuse):
         # Compute the output distribution of the model and the predictions
-        predictions = build_model(mode, inputs, params)
+        predictions = build_model(mode, word_embeddings, inputs, params)
 
     # Define loss and accuracy (we need to apply a mask to account for padding)
     loss = tf.reduce_mean(tf.nn.l2_loss(predictions - prices))

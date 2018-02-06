@@ -10,7 +10,7 @@ from model.utils import Params
 from model.utils import set_logger
 from model.training import train_and_evaluate
 from model.input_fn import input_fn
-from model.input_fn import load_tweets, load_prices
+from model.input_fn import load_tweets_and_prices, load_word_embeddings
 from model.model_fn import model_fn
 
 
@@ -42,27 +42,33 @@ if __name__ == '__main__':
     set_logger(os.path.join(args.model_dir, 'train.log'))
 
     # Get paths for dataset
-    path_train_sentences = os.path.join(args.data_dir, 'train/sentences.txt')
-    path_train_labels = os.path.join(args.data_dir, 'train/labels.txt')
-    path_eval_sentences = os.path.join(args.data_dir, 'dev/sentences.txt')
-    path_eval_labels = os.path.join(args.data_dir, 'dev/labels.txt')
-
+    path_train_embeddings = os.path.join(args.data_dir, 'embeddings/')
+    path_train_batches = os.path.join(args.data_dir, 'batches/')
+    path_train_prices = os.path.join(args.data_dir, 'price_deviations.txt')
+    path_eval_embeddings = os.path.join(args.data_dir, 'embeddings/')
+    path_eval_batches = os.path.join(args.data_dir, 'batches/')
+    path_eval_prices = os.path.join(args.data_dir, 'price_deviations.txt')
+    path_word_embeddings = os.path.join(args.data_dir, 'glove.twitter.27B.50d.txt')
+    
     # Create the input data pipeline
     logging.info("Creating the datasets...")
-    train_tweets = load_tweets(path_train_sentences)
-    train_prices = load_prices(path_train_labels)
-    eval_tweets = load_tweets(path_eval_sentences)
-    eval_prices = load_prices(path_eval_labels)
+    train_tweets, train_prices = load_tweets_and_prices(path_train_embeddings, path_train_batches, path_train_prices)
+    eval_tweets, eval_prices = load_tweets_and_prices(path_eval_embeddings, path_eval_batches, path_eval_prices)
 
     # Create the two iterators over the two datasets
     train_inputs = input_fn('train', train_tweets, train_prices, params)
     eval_inputs = input_fn('eval', eval_tweets, eval_prices, params)
     logging.info("- done.")
 
+    # Load word embeddings
+    logging.info("Loading word embeddings...")
+    word_embeddings = load_word_embeddings(path_word_embeddings, params)
+    logging.info("- done.")
+
     # Define the models (2 different set of nodes that share weights for train and eval)
     logging.info("Creating the model...")
-    train_model_spec = model_fn('train', train_inputs, params)
-    eval_model_spec = model_fn('eval', eval_inputs, params, reuse=True)
+    train_model_spec = model_fn('train', word_embeddings, train_inputs, params)
+    eval_model_spec = model_fn('eval', word_embeddings, eval_inputs, params, reuse=True)
     logging.info("- done.")
 
     # Train the model
