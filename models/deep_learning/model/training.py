@@ -22,6 +22,7 @@ def train_sess(sess, model_spec, num_steps, writer, params):
     """
     # Get relevant graph operations or nodes needed for training
     loss = model_spec['loss']
+    predictions = model_spec['predictions']
     train_op = model_spec['train_op']
     update_metrics = model_spec['update_metrics']
     metrics = model_spec['metrics']
@@ -38,12 +39,12 @@ def train_sess(sess, model_spec, num_steps, writer, params):
         # Evaluate summaries for tensorboard only once in a while
         if i % params.save_summary_steps == 0:
             # Perform a mini-batch update
-            _, _, loss_val, summ, global_step_val = sess.run([train_op, update_metrics, loss,
-                                                              summary_op, global_step])
+            _, _, loss_val, summ, global_step_val, pred = sess.run([train_op, update_metrics, loss,
+                                                              summary_op, global_step, predictions])
             # Write summaries for tensorboard
             writer.add_summary(summ, global_step_val)
         else:
-            _, _, loss_val = sess.run([train_op, update_metrics, loss])
+            _, _, loss_val, pred = sess.run([train_op, update_metrics, loss, predictions])
         # Log the loss in the tqdm progress bar
         t.set_postfix(loss='{:05.3f}'.format(loss_val))
 
@@ -86,7 +87,7 @@ def train_and_evaluate(train_model_spec, eval_model_spec, model_dir, params, res
         train_writer = tf.summary.FileWriter(os.path.join(model_dir, 'train_summaries'), sess.graph)
         eval_writer = tf.summary.FileWriter(os.path.join(model_dir, 'eval_summaries'), sess.graph)
 
-        best_eval_loss = 1000000.0
+        best_eval_loss = 0.0
         for epoch in range(begin_at_epoch, begin_at_epoch + params.num_epochs):
             # Run one epoch
             logging.info("Epoch {}/{}".format(epoch + 1, begin_at_epoch + params.num_epochs))
