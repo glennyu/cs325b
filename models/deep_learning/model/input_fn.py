@@ -3,7 +3,7 @@
 import tensorflow as tf
 import numpy as np
 
-NUM_MONTHS = 5
+NUM_MONTHS = 10
 
 def pad_tweets(tweets):
     np_tweets = np.zeros((len(tweets), len(tweets[0]), 40), dtype=np.int32)

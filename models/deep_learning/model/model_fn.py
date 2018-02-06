@@ -63,6 +63,7 @@ def model_fn(mode, word_embeddings, inputs, params, reuse=False):
 
     # Define loss and accuracy (we need to apply a mask to account for padding)
     loss = tf.reduce_mean(tf.nn.l2_loss(predictions - prices))
+    mape = tf.reduce_mean(tf.abs((prices - predictions)/prices))
 
     # Define training step that minimizes the loss with the Adam optimizer
     if is_training:
@@ -75,7 +76,8 @@ def model_fn(mode, word_embeddings, inputs, params, reuse=False):
     # Metrics for evaluation using tf.metrics (average over whole dataset)
     with tf.variable_scope("metrics"):
         metrics = {
-            'loss': tf.metrics.mean(loss)
+            'loss': tf.metrics.mean(loss),
+            'mape': tf.metrics.mean(mape)
         }
 
     # Group the update ops for the tf.metrics
@@ -87,7 +89,7 @@ def model_fn(mode, word_embeddings, inputs, params, reuse=False):
 
     # Summaries for training
     tf.summary.scalar('loss', loss)
-
+    tf.summary.scalar('mape', mape)
     # -----------------------------------------------------------
     # MODEL SPECIFICATION
     # Create the model specification and return it
@@ -98,6 +100,7 @@ def model_fn(mode, word_embeddings, inputs, params, reuse=False):
     model_spec['predictions'] = predictions
     model_spec['prices'] = prices
     model_spec['loss'] = loss
+    model_spec['mape'] = mape
     model_spec['metrics_init_op'] = metrics_init_op
     model_spec['metrics'] = metrics
     model_spec['update_metrics'] = update_metrics_op
