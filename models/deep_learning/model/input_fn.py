@@ -6,11 +6,11 @@ import numpy as np
 NUM_MONTHS = 5
 
 def pad_tweets(tweets):
-    np_tweets = np.zeros((len(tweets), len(tweets[0]), 50), dtype=np.int32)
+    np_tweets = np.zeros((len(tweets), len(tweets[0]), 40), dtype=np.int32)
     for i, batch in enumerate(tweets):
         for j, tweet in enumerate(batch):
             idx = 0
-            while idx < len(tweet) and idx < 50:
+            while idx < len(tweet) and idx < 40:
                 np_tweets[i][j][idx] = tweet[idx]
                 idx += 1
     return np_tweets

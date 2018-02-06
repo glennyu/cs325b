@@ -22,6 +22,7 @@ def train_sess(sess, model_spec, num_steps, writer, params):
     """
     # Get relevant graph operations or nodes needed for training
     loss = model_spec['loss']
+    prices = model_spec['prices']
     predictions = model_spec['predictions']
     train_op = model_spec['train_op']
     update_metrics = model_spec['update_metrics']
@@ -39,12 +40,16 @@ def train_sess(sess, model_spec, num_steps, writer, params):
         # Evaluate summaries for tensorboard only once in a while
         if i % params.save_summary_steps == 0:
             # Perform a mini-batch update
-            _, _, loss_val, summ, global_step_val, pred = sess.run([train_op, update_metrics, loss,
-                                                              summary_op, global_step, predictions])
+            _, _, loss_val, summ, global_step_val, pred, pri = sess.run([train_op, update_metrics, loss,
+                                                              summary_op, global_step, predictions, prices])
+            # print(pred)
+            # print(pri)
             # Write summaries for tensorboard
             writer.add_summary(summ, global_step_val)
         else:
-            _, _, loss_val, pred = sess.run([train_op, update_metrics, loss, predictions])
+            _, _, loss_val, pred, pri = sess.run([train_op, update_metrics, loss, predictions, prices])
+            # print(pred)
+            # print(pri)
         # Log the loss in the tqdm progress bar
         t.set_postfix(loss='{:05.3f}'.format(loss_val))
 

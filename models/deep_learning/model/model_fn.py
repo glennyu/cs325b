@@ -20,16 +20,20 @@ def build_model(mode, word_embeddings, inputs, params):
     if params.model_version == "lstm1":
         embeddings = tf.constant(word_embeddings, dtype=tf.float32)
         tweets = tf.nn.embedding_lookup(embeddings, tweets)
+        #print("after embedding shape:", tweets.get_shape())
         
-        reshaped_tweets = tf.reshape(tweets, (-1, 50, params.embedding_size))
+        reshaped_tweets = tf.reshape(tweets, (-1, 40, params.embedding_size))
+        #print("after reshaping tweets shape:", reshaped_tweets.get_shape())
         tweet_len = inputs['tweet_lengths']
         reshaped_tweet_len = tf.reshape(tweet_len, (-1,))
         
         lstm_cell = tf.nn.rnn_cell.BasicLSTMCell(params.lstm_num_units)
-        output, _ = tf.nn.dynamic_rnn(lstm_cell, reshaped_tweets, sequence_length=reshaped_tweet_len, dtype=tf.float32)
-        output = tf.reshape(output, (-1, params.tweet_batch_size, params.lstm_num_units))
-        
+        _, output = tf.nn.dynamic_rnn(lstm_cell, reshaped_tweets, sequence_length=reshaped_tweet_len, dtype=tf.float32)
+        #print("after lstm shape", output[1].get_shape()) 
+        output = tf.reshape(output[1], (-1, params.tweet_batch_size, params.lstm_num_units))
+        #print("after reshape:", output.get_shape())
         averaged_output = tf.reduce_mean(output, axis=1)
+        #print("after average:", averaged_output.get_shape())
         hidden_layer = tf.layers.dense(averaged_output, 20)
         predictions = tf.layers.dense(hidden_layer, 1)
         return predictions
@@ -92,6 +96,7 @@ def model_fn(mode, word_embeddings, inputs, params, reuse=False):
     variable_init_op = tf.group(*[tf.global_variables_initializer(), tf.tables_initializer()])
     model_spec['variable_init_op'] = variable_init_op
     model_spec['predictions'] = predictions
+    model_spec['prices'] = prices
     model_spec['loss'] = loss
     model_spec['metrics_init_op'] = metrics_init_op
     model_spec['metrics'] = metrics

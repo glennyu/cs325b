@@ -1,7 +1,7 @@
 {
     "tweet_batch_size": 50,
-    "train_size": 23,
-    "eval_size": 23,
+    "train_size": 50,
+    "eval_size": 1,
 
     "model_version": "lstm1",
     "lstm_num_units": 50,
@@ -10,7 +10,7 @@
     "learning_rate": 1e-3,
     "batch_size": 5,
     "num_epochs": 10,
-    "dropout_rate": 0.3,
+    "dropout_rate": 0.0,
 
     "save_summary_steps": 100
 }
