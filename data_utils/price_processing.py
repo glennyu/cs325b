@@ -1,11 +1,11 @@
 import csv
 from collections import defaultdict
 import matplotlib
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import numpy as np
-from scipy import stats
-from sklearn.decomposition import PCA
-from scipy.stats import pearsonr
+#from scipy import stats
+#from sklearn.decomposition import PCA
+#from scipy.stats import pearsonr
 
 # from util import *
 
@@ -235,11 +235,13 @@ def output_food_city_dev(food_to_prices):
     food = 'Onions'
     city = 'Delhi'
     prices = food_to_prices[food][city]
-    deviations = []
-    for i in range(1, len(prices)):
-        deviations.append(str(float(prices[i] - prices[i - 1]) / prices[i - 1]))
-    with open('price_deviations.txt', 'w') as output:
-        output.write('\t'.join(deviations))
+    #deviations = []
+    #for i in range(1, len(prices)):
+    #    deviations.append(str(float(prices[i] - prices[i - 1]) / prices[i - 1]))
+    #with open('price_deviations.txt', 'w') as output:
+    #    output.write('\t'.join(deviations))
+    with open('prices.txt', 'w') as output:
+	output.write('\t'.join([str(price) for price in prices]))
 
 def output_stats(india_food_prices):
     # Extract basic data
