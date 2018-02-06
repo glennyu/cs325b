@@ -241,7 +241,7 @@ def output_food_city_dev(food_to_prices):
     #with open('price_deviations.txt', 'w') as output:
     #    output.write('\t'.join(deviations))
     with open('prices.txt', 'w') as output:
-	output.write('\t'.join(prices))
+	output.write('\t'.join([str(price) for price in prices]))
 
 def output_stats(india_food_prices):
     # Extract basic data
