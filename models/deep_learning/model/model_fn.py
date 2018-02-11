@@ -22,7 +22,7 @@ def build_model(mode, word_embeddings, inputs, params):
         tweets = tf.nn.embedding_lookup(embeddings, tweets)
         #print("after embedding shape:", tweets.get_shape())
         
-        reshaped_tweets = tf.reshape(tweets, (-1, 40, params.embedding_size))
+        reshaped_tweets = tf.reshape(tweets, (-1, 140, params.embedding_size))
         #print("after reshaping tweets shape:", reshaped_tweets.get_shape())
         tweet_len = inputs['tweet_lengths']
         reshaped_tweet_len = tf.reshape(tweet_len, (-1,))
@@ -34,7 +34,7 @@ def build_model(mode, word_embeddings, inputs, params):
         #print("after reshape:", output.get_shape())
         averaged_output = tf.reduce_mean(output, axis=1)
         #print("after average:", averaged_output.get_shape())
-        hidden_layer = tf.layers.dense(averaged_output, 20)
+        hidden_layer = tf.layers.dense(averaged_output, 20, activation=tf.nn.tanh)
         predictions = tf.layers.dense(hidden_layer, 1)
         return predictions
 
