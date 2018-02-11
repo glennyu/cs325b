@@ -6,7 +6,7 @@ import os
 
 PATH = '../data/'
 K = 4.0 # threshold distance for nearest neighbors search
-DIR = '/mnt/mounted_bucket/'
+DIR = '../../../data_utils/'
 NUM_MONTHS = 35
 
 word_to_embedding = dict()
@@ -47,6 +47,12 @@ def get_tweet_cnts():
     for filename in os.listdir(DIR):
         city = filename.split('_')[0]
         with open(DIR + filename) as csvfile:
+            if '.csv' not in filename:
+                continue
+            if 'India_tweets' in filename:
+                continue
+            if 'India_Food_Prices' in filename:
+                continue
             print 'Reading file %s...' % filename
             reader = csv.DictReader(csvfile)
             for row in reader:
