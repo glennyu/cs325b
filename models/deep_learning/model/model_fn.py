@@ -35,7 +35,7 @@ def build_model(mode, word_embeddings, inputs, params):
         averaged_output = tf.reduce_mean(output, axis=1)
         #print("after average:", averaged_output.get_shape())
         hidden_layer = tf.layers.dense(averaged_output, 20, activation=tf.nn.tanh)
-        predictions = tf.layers.dense(hidden_layer, 1)
+        predictions = tf.layers.dense(hidden_layer, 2)
         return predictions
 
 def model_fn(mode, word_embeddings, inputs, params, reuse=False):
@@ -59,11 +59,13 @@ def model_fn(mode, word_embeddings, inputs, params, reuse=False):
     # MODEL: define the layers of the model
     with tf.variable_scope('model', reuse=reuse):
         # Compute the output distribution of the model and the predictions
-        predictions = build_model(mode, word_embeddings, inputs, params)
+        logits = build_model(mode, word_embeddings, inputs, params)
+        predictions = tf.argmax(logits, -1)
 
     # Define loss and accuracy (we need to apply a mask to account for padding)
-    loss = tf.reduce_mean(tf.nn.l2_loss(predictions - prices))
-    mape = tf.reduce_mean(tf.abs((prices - predictions)/prices))
+    loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits, tf.one_hot(prices)))
+    accuracy = tf.reduce_mean(tf.cast(tf.equal(prices, predictions), tf.float32))
+    # mape = tf.reduce_mean(tf.abs((prices - predictions)/prices))
 
     # Define training step that minimizes the loss with the Adam optimizer
     if is_training:
@@ -77,7 +79,8 @@ def model_fn(mode, word_embeddings, inputs, params, reuse=False):
     with tf.variable_scope("metrics"):
         metrics = {
             'loss': tf.metrics.mean(loss),
-            'mape': tf.metrics.mean(mape)
+            'accuracy': tf.metrics.accuracy(labels=prices, predictions=predictions)
+            #'mape': tf.metrics.mean(mape)
         }
 
     # Group the update ops for the tf.metrics
@@ -89,7 +92,8 @@ def model_fn(mode, word_embeddings, inputs, params, reuse=False):
 
     # Summaries for training
     tf.summary.scalar('loss', loss)
-    tf.summary.scalar('mape', mape)
+    tf.summary.scalar('accuracy', accuracy)
+    #tf.summary.scalar('mape', mape)
     # -----------------------------------------------------------
     # MODEL SPECIFICATION
     # Create the model specification and return it
@@ -100,7 +104,8 @@ def model_fn(mode, word_embeddings, inputs, params, reuse=False):
     model_spec['predictions'] = predictions
     model_spec['prices'] = prices
     model_spec['loss'] = loss
-    model_spec['mape'] = mape
+    #model_spec['mape'] = mape
+    model_spec['accuracy'] = accuracy
     model_spec['metrics_init_op'] = metrics_init_op
     model_spec['metrics'] = metrics
     model_spec['update_metrics'] = update_metrics_op
