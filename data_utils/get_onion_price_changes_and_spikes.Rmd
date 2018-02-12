@@ -1,0 +1,44 @@
+---
+title: "Get Onion Price Changes And Spikes"
+output: html_document
+---
+
+Takes in a file which has the row format of cityname followed by n months of prices for a specific food (default is Onions). 
+
+Outputs a file which has the row format of cityname followed by n months of price sign changes from the previous month and n months of price spikes from the previous month.
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(data.table)
+library(zoo)
+```
+
+```{r}
+india_onion_prices = read_csv('../data/India_Onion_Prices.csv', na = c("-1"))
+```
+```{r}
+df <- india_onion_prices %>%
+  gather(-city, key = "Month", value = "Price") %>%
+  arrange(city) %>%
+  mutate(
+    Month = as.yearmon(Month, "%m/%Y"),
+  ) %>%
+  group_by(city) %>%
+  mutate(
+    change_from_prev_month = Price - lag(Price),
+    percent_change_from_prev_month = (Price / lag(Price) - 1) * 100,
+    sign_change_from_prev_month = ifelse(change_from_prev_month > 0, 1, 
+                                  ifelse(change_from_prev_month < 0, -1, 0)),
+    spike = ifelse(abs(percent_change_from_prev_month) >= 10, 1, 0)
+  )
+```
+
+```{r}
+vector_df <- setDT(df) %>%
+  dcast(city ~ Month, value.var = c("sign_change_from_prev_month", "spike"))
+```
+
+```{r}
+vector_df %>%
+  write_csv('../data/India_Onion_Prices_Vector.csv')
+```
