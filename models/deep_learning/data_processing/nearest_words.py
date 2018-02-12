@@ -5,7 +5,7 @@ import numpy as np
 import os
 
 PATH = '../data/'
-K = 4.0 # threshold distance for nearest neighbors search
+K = 4.5 # threshold distance for nearest neighbors search
 DIR = '../../../data_utils/'
 NUM_MONTHS = 35
 
