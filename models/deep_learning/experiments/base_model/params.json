@@ -2,8 +2,8 @@
     "class_size": 3,
     "tweet_max_len": 70,
     "tweet_batch_size": 50,
-    "train_size": 1000,
-    "eval_size": 100,
+    "train_size": 85242,
+    "eval_size": 24352,
 
     "model_version": "lstm1",
     "lstm_num_units": 50,
