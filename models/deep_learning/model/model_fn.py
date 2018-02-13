@@ -83,7 +83,7 @@ def model_fn(mode, word_embeddings, inputs, params, reuse=False):
             'loss': tf.metrics.mean(loss),
             'accuracy': tf.metrics.accuracy(labels=prices, predictions=predictions),
             'auc': tf.metrics.auc(labels=tf.one_hot(prices, params.class_size), predictions=tf.nn.softmax(logits)),
-            'mean_per_class_accuracy': tf.metrics.mean_per_class_accuracy(prices, predictions, 3)
+            'mean_per_class_accuracy': tf.metrics.mean_per_class_accuracy(labels=tf.one_hot(prices, params.class_size), predictions=tf.nn.softmax(logits), num_classes=params.class_size)
             #'true_positives': tf.metrics.true_positives(prices, predictions),
             #'false_positives': tf.metrics.false_positives(prices, predictions),
             #'true_negatives': tf.metrics.true_negatives(prices, predictions),
