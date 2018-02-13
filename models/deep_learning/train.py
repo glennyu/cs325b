@@ -41,6 +41,8 @@ if __name__ == '__main__':
     # assert not overwritting, "Weights found in model_dir, aborting to avoid overwrite"
 
     # Set the logger
+    if not os.path.exists(args.results_dir):
+        os.makedirs(args.results_dir)
     set_logger(os.path.join(args.results_dir, 'train.log'))
 
     # Get paths for dataset

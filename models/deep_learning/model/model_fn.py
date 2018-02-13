@@ -77,11 +77,17 @@ def model_fn(mode, word_embeddings, inputs, params, reuse=False):
     # METRICS AND SUMMARIES
     # Metrics for evaluation using tf.metrics (average over whole dataset)
     with tf.variable_scope("metrics"):
+        print(prices)
+        print(predictions)
         metrics = {
             'loss': tf.metrics.mean(loss),
             'accuracy': tf.metrics.accuracy(labels=prices, predictions=predictions),
-            'auc': tf.metrics.auc(labels=tf.one_hot(prices, params.class_size), predictions=tf.nn.softmax(logits))
-            #'confusion': tf.contrib.metrics.confusion_matrix(predictions=predictions, labels=prices, num_classes=params.class_size)
+            'auc': tf.metrics.auc(labels=tf.one_hot(prices, params.class_size), predictions=tf.nn.softmax(logits)),
+            'mean_per_class_accuracy': tf.metrics.mean_per_class_accuracy(prices, predictions, 3)
+            #'true_positives': tf.metrics.true_positives(prices, predictions),
+            #'false_positives': tf.metrics.false_positives(prices, predictions),
+            #'true_negatives': tf.metrics.true_negatives(prices, predictions),
+            #'false_negatives': tf.metrics.false_negatives(prices, predictions)
             #'mape': tf.metrics.mean(mape)
         }
 
