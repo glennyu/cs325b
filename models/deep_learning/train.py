@@ -50,8 +50,8 @@ if __name__ == '__main__':
     
     # Create the input data pipeline
     logging.info("Creating the datasets...")
-    train_tweets, train_prices = load_tweets_and_prices(path_train_embeddings, path_train_batches)
-    eval_tweets, eval_prices = load_tweets_and_prices(path_eval_embeddings, path_eval_batches)
+    train_tweets, train_prices = load_tweets_and_prices(path_train_embeddings, path_train_batches, params)
+    eval_tweets, eval_prices = load_tweets_and_prices(path_eval_embeddings, path_eval_batches, params)
 
     # Create the two iterators over the two datasets
     train_inputs = input_fn('train', train_tweets, train_prices, params)

@@ -1,4 +1,6 @@
 {
+    "class_size": 3,
+    "tweet_max_len": 70,
     "tweet_batch_size": 50,
     "train_size": 1000,
     "eval_size": 100,

@@ -22,7 +22,7 @@ def build_model(mode, word_embeddings, inputs, params):
         tweets = tf.nn.embedding_lookup(embeddings, tweets)
         #print("after embedding shape:", tweets.get_shape())
         
-        reshaped_tweets = tf.reshape(tweets, (-1, 70, params.embedding_size))
+        reshaped_tweets = tf.reshape(tweets, (-1, params.tweet_max_len, params.embedding_size))
         #print("after reshaping tweets shape:", reshaped_tweets.get_shape())
         tweet_len = inputs['tweet_lengths']
         reshaped_tweet_len = tf.reshape(tweet_len, (-1,))
@@ -35,7 +35,7 @@ def build_model(mode, word_embeddings, inputs, params):
         averaged_output = tf.reduce_mean(output, axis=1)
         #print("after average:", averaged_output.get_shape())
         hidden_layer = tf.layers.dense(averaged_output, 20, activation=tf.nn.tanh)
-        predictions = tf.layers.dense(hidden_layer, 3)
+        predictions = tf.layers.dense(hidden_layer, params.class_size)
         return predictions
 
 def model_fn(mode, word_embeddings, inputs, params, reuse=False):
@@ -63,7 +63,7 @@ def model_fn(mode, word_embeddings, inputs, params, reuse=False):
         predictions = tf.argmax(logits, -1, output_type=tf.int32)
 
     # Define loss and accuracy (we need to apply a mask to account for padding)
-    loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=tf.one_hot(prices, 3), logits=logits))
+    loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=tf.one_hot(prices, params.class_size), logits=logits))
     accuracy = tf.reduce_mean(tf.cast(tf.equal(prices, predictions), tf.float32))
     # mape = tf.reduce_mean(tf.abs((prices - predictions)/prices))
 

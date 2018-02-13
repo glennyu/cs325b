@@ -6,13 +6,13 @@ import os
 
 NUM_MONTHS = 35
 
-def pad_tweets(tweets):
-    np_tweets = np.zeros((len(tweets), len(tweets[0]), 70), dtype=np.int32)
+def pad_tweets(tweets, max_tweet_len):
+    np_tweets = np.zeros((len(tweets), len(tweets[0]), max_tweet_len), dtype=np.int32)
     for i, batch in enumerate(tweets):
         for j, tweet in enumerate(batch):
-            idx = 0
-            if (len(tweet) > 70):
+            if (len(tweet) > max_tweet_len):
                 print("found tweet of length", len(tweet))
+            idx = 0
             while idx < len(tweet):
                 np_tweets[i][j][idx] = tweet[idx]
                 idx += 1
@@ -22,12 +22,13 @@ def get_tweet_len(tweets):
     tweet_len = [[len(tweet) for tweet in batch] for batch in tweets]
     return tweet_len
 
-def load_tweets_and_prices(path_embeddings, path_batches):
+def load_tweets_and_prices(path_embeddings, path_batches, params):
     """Create tf.data Instance from txt file
 
     Args:
         path_embeddings: (string) path to embeddings
         path_batches: (string) path to batches
+        params: data parameters
 
     Returns:
         tweets, prices: (tf.Dataset) yielding list of tweet tokens, lengths, and price deviations
@@ -44,14 +45,14 @@ def load_tweets_and_prices(path_embeddings, path_batches):
             yVal = -1
             for batch in batchf:
                 if priceLine:
-                    yVal = int(batch.split(',')[0]) #0 = predict price change, 1 = predict price spike
+                    yVal = int(batch.split(',')[3 - params.class_size]) #0 = predict price change, 1 = predict price spike
                     priceLine = False
                 else:
                     tweets.append([month_tweets[int(idx)] for idx in batch.split('\t')])
                     prices.append(yVal)
 
     tweet_len = tf.data.Dataset.from_tensor_slices(tf.constant(get_tweet_len(tweets), dtype=tf.int32))
-    tweets = tf.data.Dataset.from_tensor_slices(tf.constant(pad_tweets(tweets), dtype=tf.int32))
+    tweets = tf.data.Dataset.from_tensor_slices(tf.constant(pad_tweets(tweets, params.max_tweet_len), dtype=tf.int32))
     tweets = tf.data.Dataset.zip((tweets, tweet_len))
     prices = tf.data.Dataset.from_tensor_slices(tf.constant(prices, dtype=tf.int32))
     return tweets, prices
