@@ -22,7 +22,7 @@ def build_model(mode, word_embeddings, inputs, params):
         tweets = tf.nn.embedding_lookup(embeddings, tweets)
         #print("after embedding shape:", tweets.get_shape())
         
-        reshaped_tweets = tf.reshape(tweets, (-1, 140, params.embedding_size))
+        reshaped_tweets = tf.reshape(tweets, (-1, params.tweet_max_len, params.embedding_size))
         #print("after reshaping tweets shape:", reshaped_tweets.get_shape())
         tweet_len = inputs['tweet_lengths']
         reshaped_tweet_len = tf.reshape(tweet_len, (-1,))
@@ -35,7 +35,7 @@ def build_model(mode, word_embeddings, inputs, params):
         averaged_output = tf.reduce_mean(output, axis=1)
         #print("after average:", averaged_output.get_shape())
         hidden_layer = tf.layers.dense(averaged_output, 20, activation=tf.nn.tanh)
-        predictions = tf.layers.dense(hidden_layer, 2)
+        predictions = tf.layers.dense(hidden_layer, params.class_size)
         return predictions
 
 def model_fn(mode, word_embeddings, inputs, params, reuse=False):
@@ -60,10 +60,10 @@ def model_fn(mode, word_embeddings, inputs, params, reuse=False):
     with tf.variable_scope('model', reuse=reuse):
         # Compute the output distribution of the model and the predictions
         logits = build_model(mode, word_embeddings, inputs, params)
-        predictions = tf.argmax(logits, -1)
+        predictions = tf.argmax(logits, -1, output_type=tf.int32)
 
     # Define loss and accuracy (we need to apply a mask to account for padding)
-    loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits, tf.one_hot(prices)))
+    loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=tf.one_hot(prices, params.class_size), logits=logits))
     accuracy = tf.reduce_mean(tf.cast(tf.equal(prices, predictions), tf.float32))
     # mape = tf.reduce_mean(tf.abs((prices - predictions)/prices))
 
@@ -77,9 +77,17 @@ def model_fn(mode, word_embeddings, inputs, params, reuse=False):
     # METRICS AND SUMMARIES
     # Metrics for evaluation using tf.metrics (average over whole dataset)
     with tf.variable_scope("metrics"):
+        print(prices)
+        print(predictions)
         metrics = {
             'loss': tf.metrics.mean(loss),
-            'accuracy': tf.metrics.accuracy(labels=prices, predictions=predictions)
+            'accuracy': tf.metrics.accuracy(labels=prices, predictions=predictions),
+            'auc': tf.metrics.auc(labels=tf.one_hot(prices, params.class_size), predictions=tf.nn.softmax(logits)),
+            'mean_per_class_accuracy': tf.metrics.mean_per_class_accuracy(labels=tf.one_hot(prices, params.class_size), predictions=tf.nn.softmax(logits), num_classes=params.class_size)
+            #'true_positives': tf.metrics.true_positives(prices, predictions),
+            #'false_positives': tf.metrics.false_positives(prices, predictions),
+            #'true_negatives': tf.metrics.true_negatives(prices, predictions),
+            #'false_negatives': tf.metrics.false_negatives(prices, predictions)
             #'mape': tf.metrics.mean(mape)
         }
 

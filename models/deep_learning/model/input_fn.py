@@ -2,15 +2,18 @@
 
 import tensorflow as tf
 import numpy as np
+import os
 
 NUM_MONTHS = 35
 
-def pad_tweets(tweets):
-    np_tweets = np.zeros((len(tweets), len(tweets[0]), 140), dtype=np.int32)
+def pad_tweets(tweets, max_tweet_len):
+    np_tweets = np.zeros((len(tweets), len(tweets[0]), max_tweet_len), dtype=np.int32)
     for i, batch in enumerate(tweets):
         for j, tweet in enumerate(batch):
+            if (len(tweet) > max_tweet_len):
+                print("found tweet of length", len(tweet))
             idx = 0
-            while idx < len(tweet) and idx < 140:
+            while idx < len(tweet):
                 np_tweets[i][j][idx] = tweet[idx]
                 idx += 1
     return np_tweets
@@ -19,34 +22,39 @@ def get_tweet_len(tweets):
     tweet_len = [[len(tweet) for tweet in batch] for batch in tweets]
     return tweet_len
 
-def load_tweets_and_prices(path_embeddings, path_batches, path_prices):
+def load_tweets_and_prices(path_embeddings, path_batches, params):
     """Create tf.data Instance from txt file
 
     Args:
         path_embeddings: (string) path to embeddings
         path_batches: (string) path to batches
-        path_prices: (string) path to prices
+        params: data parameters
 
     Returns:
         tweets, prices: (tf.Dataset) yielding list of tweet tokens, lengths, and price deviations
     """
     tweets, prices = [], []
-    with open(path_prices, "r") as pricef:
-        p_dev = [float(p) for p in pricef.readline().strip('\n').split('\t')]
-        for i in range(NUM_MONTHS):
-            month_tweets = []
-            with open(path_embeddings + str(i) + "_embeddings_delhi.csv", "r") as embf:
-                for tweet in embf:
-                    month_tweets.append([int(num) for num in tweet.split(',')])
-            with open(path_batches + str(i) + "_batches_delhi.txt", "r") as batchf:
-                for batch in batchf:
+    for filename in os.listdir(path_batches):
+        city_month = filename[:filename.find("batch")]
+        month_tweets = []
+        with open(path_embeddings + city_month + "embeddings.csv", "r") as embf:
+            for tweet in embf:
+                month_tweets.append([int(num) for num in tweet.split(',')])
+        with open(path_batches + filename, "r") as batchf:
+            priceLine = True
+            yVal = -1
+            for batch in batchf:
+                if priceLine:
+                    yVal = int(batch.split(',')[3 - params.class_size]) #0 = predict price change, 1 = predict price spike
+                    priceLine = False
+                else:
                     tweets.append([month_tweets[int(idx)] for idx in batch.split('\t')])
-                    prices.append(p_dev[i])
+                    prices.append(yVal)
 
     tweet_len = tf.data.Dataset.from_tensor_slices(tf.constant(get_tweet_len(tweets), dtype=tf.int32))
-    tweets = tf.data.Dataset.from_tensor_slices(tf.constant(pad_tweets(tweets), dtype=tf.int32))
+    tweets = tf.data.Dataset.from_tensor_slices(tf.constant(pad_tweets(tweets, params.tweet_max_len), dtype=tf.int32))
     tweets = tf.data.Dataset.zip((tweets, tweet_len))
-    prices = tf.data.Dataset.from_tensor_slices(tf.constant(prices, dtype=tf.float32))
+    prices = tf.data.Dataset.from_tensor_slices(tf.constant(prices, dtype=tf.int32))
     return tweets, prices
 
 def load_word_embeddings(path_word_embeddings, params):
