@@ -79,7 +79,9 @@ def model_fn(mode, word_embeddings, inputs, params, reuse=False):
     with tf.variable_scope("metrics"):
         metrics = {
             'loss': tf.metrics.mean(loss),
-            'accuracy': tf.metrics.accuracy(labels=prices, predictions=predictions)
+            'accuracy': tf.metrics.accuracy(labels=prices, predictions=predictions),
+            'auc': tf.metrics.auc(labels=tf.one_hot(prices, params.class_size), predictions=tf.nn.softmax(logits))
+            #'confusion': tf.contrib.metrics.confusion_matrix(predictions=predictions, labels=prices, num_classes=params.class_size)
             #'mape': tf.metrics.mean(mape)
         }
 
