@@ -44,16 +44,14 @@ if __name__ == '__main__':
     # Get paths for dataset
     path_train_embeddings = os.path.join(args.data_dir, 'embeddings/')
     path_train_batches = os.path.join(args.data_dir, 'batches_train/')
-    path_train_prices = os.path.join(args.data_dir, 'price_deviations.txt')
     path_eval_embeddings = os.path.join(args.data_dir, 'embeddings/')
     path_eval_batches = os.path.join(args.data_dir, 'batches_val/')
-    path_eval_prices = os.path.join(args.data_dir, 'price_deviations.txt')
     path_word_embeddings = os.path.join(args.data_dir, 'glove.twitter.27B.50d.txt')
     
     # Create the input data pipeline
     logging.info("Creating the datasets...")
-    train_tweets, train_prices = load_tweets_and_prices(path_train_embeddings, path_train_batches, path_train_prices)
-    eval_tweets, eval_prices = load_tweets_and_prices(path_eval_embeddings, path_eval_batches, path_eval_prices)
+    train_tweets, train_prices = load_tweets_and_prices(path_train_embeddings, path_train_batches)
+    eval_tweets, eval_prices = load_tweets_and_prices(path_eval_embeddings, path_eval_batches)
 
     # Create the two iterators over the two datasets
     train_inputs = input_fn('train', train_tweets, train_prices, params)
