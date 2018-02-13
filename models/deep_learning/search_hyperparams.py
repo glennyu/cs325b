@@ -28,14 +28,16 @@ def launch_training_job(parent_dir, data_dir, job_name, params):
     model_dir = os.path.join(parent_dir, job_name)
     if not os.path.exists(model_dir):
         os.makedirs(model_dir)
+        os.makedirs(model_dir + "/results/")
+    results_dir = model_dir + "/results/"
 
     # Write parameters in json file
     json_path = os.path.join(model_dir, 'params.json')
     params.save(json_path)
 
     # Launch training with this config
-    cmd = "{python} train.py --model_dir {model_dir} --data_dir {data_dir}".format(python=PYTHON,
-            model_dir=model_dir, data_dir=data_dir)
+    cmd = "{python} train.py --model_dir {model_dir} --data_dir {data_dir} --results_dir {results_dir}".format(python=PYTHON,
+            model_dir=model_dir, data_dir=data_dir, results_dir=results_dir)
     print(cmd)
     check_call(cmd, shell=True)
 
