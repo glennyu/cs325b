@@ -89,8 +89,8 @@ def train_and_evaluate(train_model_spec, eval_model_spec, results_dir, params, r
             last_saver.restore(sess, restore_from)
 
         # For tensorboard (takes care of writing summaries to files)
-        train_writer = tf.summary.FileWriter(os.path.join(results_dir, 'train_summaries'), sess.graph)
-        eval_writer = tf.summary.FileWriter(os.path.join(results_dir, 'eval_summaries'), sess.graph)
+        train_writer = tf.summary.FileWriter(os.path.join(results_dir, 'train_summaries'), None)
+        eval_writer = tf.summary.FileWriter(os.path.join(results_dir, 'eval_summaries'), None)
 
         best_eval_acc = 0.0
         for epoch in range(begin_at_epoch, begin_at_epoch + params.num_epochs):
