@@ -52,7 +52,7 @@ def load_tweets_and_prices(path_embeddings, path_batches, params):
                     prices.append(yVal)
 
     tweet_len = tf.data.Dataset.from_tensor_slices(tf.constant(get_tweet_len(tweets), dtype=tf.int32))
-    tweets = tf.data.Dataset.from_tensor_slices(tf.constant(pad_tweets(tweets, params.max_tweet_len), dtype=tf.int32))
+    tweets = tf.data.Dataset.from_tensor_slices(tf.constant(pad_tweets(tweets, params.tweet_max_len), dtype=tf.int32))
     tweets = tf.data.Dataset.zip((tweets, tweet_len))
     prices = tf.data.Dataset.from_tensor_slices(tf.constant(prices, dtype=tf.int32))
     return tweets, prices

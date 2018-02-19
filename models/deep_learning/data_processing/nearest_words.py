@@ -77,8 +77,8 @@ def get_tweet_cnts():
 
 def main():
     read_file(PATH + 'glove.twitter.27B.50d.txt')
-    #find_nearest_words('onion')
-    get_tweet_cnts()
+    find_nearest_words('onion')
+    #get_tweet_cnts()
 
 if __name__ == '__main__':
     main()
