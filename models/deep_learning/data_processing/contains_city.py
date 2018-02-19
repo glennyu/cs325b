@@ -3,7 +3,7 @@ import csv
 from datetime import date, timedelta
 from collections import defaultdict
 
-PATH = 'Onion Weekly By Market/'
+PATH = '../data/Onion Weekly By Market/'
 START = date(2014, 1, 1)
 END = date(2016, 11, 30)
 
@@ -40,20 +40,27 @@ def get_city_to_weeks():
                             continue
                         time_diff = cur - prevDate
                         if (cur >= START and cur <= END and time_diff < timedelta(days=8)):
-                            price_change = 1
+                            price_change = 2
                             if (price == prevPrice):
-                                price_change = 0
+                                price_change = 1
                             elif (price < prevPrice):
-                                price_change = -1
+                                price_change = 0
                             city_to_weeks[city].append(time + [price_change])
                         prevDate = cur
                         prevPrice = price
                 break
+
+    for city in city_to_weeks:
+        city_to_weeks[city] = sorted(city_to_weeks[city], key=lambda x: x[0: 3])
+
     return city_to_weeks
+
+city_to_weeks = get_city_to_weeks()
 
 total = 0
 for city in city_to_weeks:
-    print city, len(city_to_weeks[city])
+    if (city != 'mumbai'): continue
+    print city, city_to_weeks[city]
     total += len(city_to_weeks[city])
 print 'Total weeks: %d' % total
 

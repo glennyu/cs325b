@@ -1,6 +1,8 @@
 from collections import defaultdict
 import csv
 import HTMLParser
+import matplotlib.mlab as mlab
+import matplotlib.pyplot as plt
 import numpy as np
 import os
 
@@ -27,6 +29,8 @@ def read_file(filename):
 # Outputs nearest words to word using L2 distance < K (threshold value)
 def find_nearest_words(word):
     print 'Finding nearest words...'
+    distances = []
+    total_dist = 0
     if (word not in word_to_embedding):
         print ' -done'
         print '%s not found in dictionary' % word
@@ -36,9 +40,13 @@ def find_nearest_words(word):
             dist = np.linalg.norm(np.array(word_to_embedding[neighbor]) - np.array(word_to_embedding[word]))
             if (dist <= K):
                 cnt += 1
+                distances.append(dist)
+                total_dist += dist
                 print 'word: %s, dist: %f' % (neighbor, dist)
         print '%d neighbors found' % cnt
+        print 'Mean distance: %f' % (total_dist/cnt)
         print ' -done'
+    return distances
 
 # Outputs file with related tweet counts by city and month
 def get_tweet_cnts():
@@ -75,9 +83,18 @@ def get_tweet_cnts():
             line = '\t'.join([city] + cnts) + '\n'
             output.write(line)
 
+def output_stats(distances):
+    # Generate histogram
+    fig = plt.hist(distances, bins=[i*0.5 for i in range(10)], facecolor='blue', alpha=0.5)
+    plt.xlabel('Distance from Onion')
+    plt.ylabel('Frequency')
+    plt.title('Histogram of Word Distances from Onion')
+    plt.savefig('related_word_histogram.png')
+    
 def main():
     read_file(PATH + 'glove.twitter.27B.50d.txt')
-    find_nearest_words('onion')
+    distances = find_nearest_words('onion')
+    output_stats(distances)
     #get_tweet_cnts()
 
 if __name__ == '__main__':
