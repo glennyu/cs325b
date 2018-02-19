@@ -26,8 +26,8 @@ def build_model(mode, word_embeddings, inputs, params):
         #print("after reshaping tweets shape:", reshaped_tweets.get_shape())
         tweet_len = inputs['tweet_lengths']
         reshaped_tweet_len = tf.reshape(tweet_len, (-1,))
-        
         lstm_cell = tf.nn.rnn_cell.BasicLSTMCell(params.lstm_num_units)
+        lstm_cell = tf.contrib.rnn.DropoutWrapper(lstm_cell, output_keep_prob=1.0 - params.dropout_rate)
         _, output = tf.nn.dynamic_rnn(lstm_cell, reshaped_tweets, sequence_length=reshaped_tweet_len, dtype=tf.float32)
         #print("after lstm shape", output[1].get_shape()) 
         output = tf.reshape(output[1], (-1, params.tweet_batch_size, params.lstm_num_units))
@@ -64,6 +64,12 @@ def model_fn(mode, word_embeddings, inputs, params, reuse=False):
 
     # Define loss and accuracy (we need to apply a mask to account for padding)
     loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=tf.one_hot(prices, params.class_size), logits=logits))
+    trainable_vars = tf.trainable_variables()
+    reg_losses = tf.reduce_sum([tf.nn.l2_loss(v) for v in trainable_vars])
+    reg_term = 0.05
+    print("reg_losses:", reg_losses) 
+    loss = loss + reg_term * reg_losses    
+    
     accuracy = tf.reduce_mean(tf.cast(tf.equal(prices, predictions), tf.float32))
     # mape = tf.reduce_mean(tf.abs((prices - predictions)/prices))
 
