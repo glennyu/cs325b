@@ -5,6 +5,7 @@ import os
 
 from tqdm import trange
 import tensorflow as tf
+import numpy as np
 
 from model.utils import save_dict_to_json
 from model.evaluation import evaluate_sess
@@ -106,7 +107,7 @@ def train_and_evaluate(train_model_spec, eval_model_spec, results_dir, params, r
             logging.info("Epoch {}/{}".format(epoch + 1, begin_at_epoch + params.num_epochs))
             # Compute number of batches in one epoch (one full pass over the training set)
             num_steps = (params.train_size + params.batch_size - 1) // params.batch_size
-            train_conf_matrix += train_sess(sess, train_model_spec, num_steps, train_writer, params)
+            train_conf_matrix = train_sess(sess, train_model_spec, num_steps, train_writer, params)
 
             # Save weights
             # last_save_path = os.path.join(results_dir, 'last_weights', 'after-epoch')
@@ -114,8 +115,7 @@ def train_and_evaluate(train_model_spec, eval_model_spec, results_dir, params, r
 
             # Evaluate for one epoch on validation set
             num_steps = (params.eval_size + params.batch_size - 1) // params.batch_size
-            metrics, m = evaluate_sess(sess, eval_model_spec, num_steps, eval_writer)
-            eval_conf_matrix += m
+            metrics, m = evaluate_sess(sess, eval_model_spec, num_steps, eval_writer, params)
 
             # If best_eval, best_save_path
             eval_acc = metrics['accuracy']
@@ -128,6 +128,7 @@ def train_and_evaluate(train_model_spec, eval_model_spec, results_dir, params, r
                 # Save best eval metrics in a json file in the model directory
                 best_json_path = os.path.join(results_dir, "metrics_eval_best_weights.json")
                 save_dict_to_json(metrics, best_json_path)
+                eval_conf_matrix = m
 
             # Save latest eval metrics in a json file in the model directory
             last_json_path = os.path.join(results_dir, "metrics_eval_last_weights.json")
