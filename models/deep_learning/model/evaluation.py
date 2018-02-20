@@ -5,6 +5,7 @@ import os
 
 from tqdm import trange
 import tensorflow as tf
+import numpy as np
 
 from model.utils import save_dict_to_json
 
@@ -19,6 +20,8 @@ def evaluate_sess(sess, model_spec, num_steps, writer=None, params=None):
         writer: (tf.summary.FileWriter) writer for summaries. Is None if we don't log anything
         params: (Params) hyperparameters
     """
+    prices = model_spec['prices']
+    predictions = model_spec['predictions']
     update_metrics = model_spec['update_metrics']
     eval_metrics = model_spec['metrics']
     global_step = tf.train.get_global_step()
