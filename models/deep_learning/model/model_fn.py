@@ -66,7 +66,7 @@ def model_fn(mode, word_embeddings, inputs, params, reuse=False):
     loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=tf.one_hot(prices, params.class_size), logits=logits))
     trainable_vars = tf.trainable_variables()
     reg_losses = tf.reduce_sum([tf.nn.l2_loss(v) for v in trainable_vars])
-    reg_term = 0.05
+    reg_term = 0.01
     print("reg_losses:", reg_losses) 
     loss = loss + reg_term * reg_losses    
     
