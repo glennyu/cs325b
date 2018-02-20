@@ -5,6 +5,7 @@ import os
 
 from tqdm import trange
 import tensorflow as tf
+import numpy as np
 
 from model.utils import save_dict_to_json
 from model.evaluation import evaluate_sess

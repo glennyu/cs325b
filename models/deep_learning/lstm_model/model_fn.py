@@ -16,30 +16,34 @@ def build_model(mode, word_embeddings, inputs, params):
         output: (tf.Tensor) output of the model
     """
     tweets = inputs['tweets'] #(batch_size, time, tweet_batch, tweet_length)
-    prv_prices = tf.one_hot(inputs['prv_prices'], params.class_size) #(batch_size, time, time_step)
+    prv_prices = inputs['prv_prices'] #(batch_size, time, time_step)
 
     embeddings = tf.constant(word_embeddings, dtype=tf.float32)
     tweets = tf.nn.embedding_lookup(embeddings, tweets)
-    print("after embedding shape:", tweets.get_shape())
+    #print("after embedding shape:", tweets.get_shape())
     
     reshaped_tweets = tf.reshape(tweets, (-1, params.tweet_max_len, params.embedding_size))
-    print("after reshaping tweets shape:", reshaped_tweets.get_shape())
+    #print("after reshaping tweets shape:", reshaped_tweets.get_shape())
     tweet_len = inputs['tweet_lengths']
     reshaped_tweet_len = tf.reshape(tweet_len, (-1,))
-    lstm_tweet_cell = tf.nn.rnn_cell.BasicLSTMCell(params.lstm_num_units)
-    _, output = tf.nn.dynamic_rnn(lstm_tweet_cell, reshaped_tweets, sequence_length=reshaped_tweet_len, dtype=tf.float32)
-    print("after lstm shape", output[1].get_shape()) 
-    output = tf.reshape(output[1], (-1, params.time_step, params.tweet_batch_size, params.lstm_num_units))
-    print("after reshape:", output.get_shape())
-    averaged_output = tf.reduce_mean(output, axis=2)
-    print("after average:", averaged_output.get_shape())
 
-    tweet_price = tf.concat([averaged_output, prv_prices], axis=-1)
-    print("after concat:", tweet_price.get_shape())
-    lstm_time_cell = tf.nn.rnn_cell.BasicLSTMCell(params.lstm_num_units)
-    _, time_output = tf.nn.dynamic_rnn(lstm_time_cell, tweet_price, dtype=tf.float32)
-    time_output = time_output[1]
-    print("after time lstm:", time_output.get_shape())
+    with tf.variable_scope("LSTM1", reuse=False):
+        lstm_tweet_cell = tf.nn.rnn_cell.BasicLSTMCell(params.lstm_num_units)
+        _, output = tf.nn.dynamic_rnn(lstm_tweet_cell, reshaped_tweets, sequence_length=reshaped_tweet_len, dtype=tf.float32)
+        #print("after lstm shape", output[1].get_shape()) 
+        output = tf.reshape(output[1], (-1, params.time_step, params.tweet_batch_size, params.lstm_num_units))
+        #print("after reshape:", output.get_shape())
+        averaged_output = tf.reduce_mean(output, axis=2)
+        #print("after average:", averaged_output.get_shape())
+
+
+    with tf.variable_scope("LSTM2", reuse=False):
+        tweet_price = tf.concat([averaged_output, tf.cast(tf.expand_dims(prv_prices, axis=-1), tf.float32)], axis=-1)
+        #print("after concat:", tweet_price.get_shape())
+        lstm_time_cell = tf.nn.rnn_cell.BasicLSTMCell(params.lstm_num_units)
+        _, time_output = tf.nn.dynamic_rnn(lstm_time_cell, tweet_price, dtype=tf.float32)
+        time_output = time_output[1]
+        #print("after time lstm:", time_output.get_shape())
 
     hidden_layer = tf.layers.dense(time_output, 30, activation=tf.nn.tanh)
     predictions = tf.layers.dense(hidden_layer, params.class_size)
@@ -77,7 +81,7 @@ def model_fn(mode, word_embeddings, inputs, params, reuse=False):
     #print("reg_losses:", reg_losses) 
     #loss = loss + reg_term * reg_losses    
     
-    accuracy = tf.reduce_mean(tf.cast(tf.equal(prices, predictions), tf.float32))
+    accuracy = tf.reduce_mean(tf.cast(tf.equal(tf.cast(prices, tf.int32), predictions), tf.float32))
     # mape = tf.reduce_mean(tf.abs((prices - predictions)/prices))
 
     # Define training step that minimizes the loss with the Adam optimizer
@@ -90,8 +94,8 @@ def model_fn(mode, word_embeddings, inputs, params, reuse=False):
     # METRICS AND SUMMARIES
     # Metrics for evaluation using tf.metrics (average over whole dataset)
     with tf.variable_scope("metrics"):
-        print(prices)
-        print(predictions)
+        #print(prices)
+        #print(predictions)
         metrics = {
             'loss': tf.metrics.mean(loss),
             'accuracy': tf.metrics.accuracy(labels=prices, predictions=predictions),

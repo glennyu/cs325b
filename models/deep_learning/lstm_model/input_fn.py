@@ -34,9 +34,12 @@ def load_tweets_and_prices(path_embeddings, path_batches, params):
     """
     tweets, prv_price_dir, price_dir = [], [], []
     for filename in os.listdir(path_batches):
-        city = filename[:filename.find("batch")]
+        city = filename[:filename.find("_weekly_batch")]
+        if 'lucknow' not in city:
+            continue
+        print("processing", city)
         city_tweets = []
-        with open(path_embeddings + city + "embeddings.csv", "r") as embf:
+        with open(path_embeddings + city + "_embeddings.csv", "r") as embf:
             for tweet in embf:
                 city_tweets.append([int(num) for num in tweet.split(',')])
         with open(path_batches + filename, "r") as batchf:
@@ -45,14 +48,15 @@ def load_tweets_and_prices(path_embeddings, path_batches, params):
                 tweet_idx = np.reshape(nums[:params.time_step*params.tweet_batch_size], (params.time_step, params.tweet_batch_size))
                 cur_price_dir = nums[params.time_step*params.tweet_batch_size:]
                 tweets.append([[city_tweets[idx] for idx in tweet] for tweet in tweet_idx])
-                prv_price_dir.append([cur_price_dir[i for i in range(params.time_step)])
+                prv_price_dir.append(cur_price_dir[:params.time_step])
                 price_dir.append(cur_price_dir[-1])
         prv_price_dir= np.array(prv_price_dir)
         price_dir = np.array(price_dir)
 
     tweet_len = tf.data.Dataset.from_tensor_slices(get_tweet_len(tweets))
-    tweets = tf.data.Dataset.from_tensor_slices(pad_tweets(tweets, params.time_step, params.tweet_batch_size, params.tweet_max_len), dtype=tf.int32)
-    tweets = tf.data.Dataset.zip((tweets, tweet_len, prv_price_dir))
+    prv_price_dir_tf = tf.data.Dataset.from_tensor_slices(prv_price_dir)
+    tweets = tf.data.Dataset.from_tensor_slices(pad_tweets(tweets, params.time_step, params.tweet_batch_size, params.tweet_max_len))
+    tweets = tf.data.Dataset.zip((tweets, tweet_len, prv_price_dir_tf))
     price_dir = tf.data.Dataset.from_tensor_slices(np.array(price_dir))
     return tweets, price_dir
 
