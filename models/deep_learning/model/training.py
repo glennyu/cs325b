@@ -135,6 +135,9 @@ def train_and_evaluate(train_model_spec, eval_model_spec, results_dir, params, r
             save_dict_to_json(metrics, last_json_path)
 
 
+        logging.info("- Training Confusion Matrix:\n {}".format(train_conf_matrix))
+        logging.info("- Evaluation Confusion Matrix:\n {}".format(eval_conf_matrix))
+
         print("Training Confusion Matrix:")
         print(train_conf_matrix)
         print("Evaluation Confusion Matrix:")
