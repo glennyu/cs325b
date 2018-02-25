@@ -137,8 +137,3 @@ def train_and_evaluate(train_model_spec, eval_model_spec, results_dir, params, r
 
         logging.info("- Training Confusion Matrix:\n {}".format(train_conf_matrix))
         logging.info("- Evaluation Confusion Matrix:\n {}".format(eval_conf_matrix))
-
-        print("Training Confusion Matrix:")
-        print(train_conf_matrix)
-        print("Evaluation Confusion Matrix:")
-        print(eval_conf_matrix)
