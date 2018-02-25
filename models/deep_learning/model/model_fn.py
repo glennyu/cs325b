@@ -27,6 +27,12 @@ def build_model(mode, word_embeddings, inputs, params):
         tweet_len = inputs['tweet_lengths']
         #reshaped_tweet_len = tf.reshape(tweet_len, (-1,))
         lstm_cell = tf.nn.rnn_cell.BasicLSTMCell(params.lstm_num_units)
+        
+        reg_term = 0.1
+        for lstm_variable in lstm_cell.variables:
+            weight_decay = tf.multiply(tf.nn.l2_loss(lstm_variable), reg_term, name='weight_decay')
+            tf.add_to_collection(tf.GraphKeys.REGULARIZATION_LOSSES, weight_decay)
+
         #lstm_cell = tf.contrib.rnn.DropoutWrapper(lstm_cell, output_keep_prob=1.0 - params.dropout_rate)
         _, output = tf.nn.dynamic_rnn(lstm_cell, tweets, sequence_length=tweet_len, dtype=tf.float32)
         #print("after lstm shape", output[1].get_shape()) 
@@ -34,7 +40,7 @@ def build_model(mode, word_embeddings, inputs, params):
         #print("after reshape:", output.get_shape())
         #averaged_output = tf.reduce_mean(output, axis=1)
         #print("after average:", averaged_output.get_shape())
-        hidden_layer = tf.layers.dense(output[1], 20, activation=tf.nn.tanh)
+        hidden_layer = tf.layers.dense(output[1], 20, activation=tf.nn.tanh, kernel_regularizer=tf.contrib.layers.l2_regularizer(reg_term))
         predictions = tf.layers.dense(hidden_layer, params.class_size)
         return predictions
 
@@ -64,12 +70,15 @@ def model_fn(mode, word_embeddings, inputs, params, reuse=False):
 
     # Define loss and accuracy (we need to apply a mask to account for padding)
     loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=tf.one_hot(prices, params.class_size), logits=logits))
-    trainable_vars = tf.trainable_variables()
-    reg_losses = tf.reduce_sum([tf.nn.l2_loss(v) for v in trainable_vars])
-    reg_term = 0.01
-    print("reg_losses:", reg_losses) 
-    loss = loss + reg_term * reg_losses    
-    
+    #trainable_vars = tf.trainable_variables()
+    #reg_losses = tf.reduce_sum([tf.nn.l2_loss(v) for v in trainable_vars])
+    #reg_term = 0.01
+    #print("reg_losses:", reg_losses) 
+    #loss = loss + reg_term * reg_losses    
+    reg_loss = sum(tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES))
+#     total_reg_losses = tf.Print(total_reg_losses, total_reg_losses, "Total regularization loss:")
+    loss = loss + reg_loss    
+ 
     accuracy = tf.reduce_mean(tf.cast(tf.equal(prices, predictions), tf.float32))
     # mape = tf.reduce_mean(tf.abs((prices - predictions)/prices))
 
@@ -106,6 +115,7 @@ def model_fn(mode, word_embeddings, inputs, params, reuse=False):
 
     # Summaries for training
     tf.summary.scalar('loss', loss)
+    tf.summary.scalar('reg_loss', reg_loss)
     tf.summary.scalar('accuracy', accuracy)
     #tf.summary.scalar('mape', mape)
     # -----------------------------------------------------------
@@ -118,6 +128,7 @@ def model_fn(mode, word_embeddings, inputs, params, reuse=False):
     model_spec['predictions'] = predictions
     model_spec['prices'] = prices
     model_spec['loss'] = loss
+    model_spec['reg_loss'] = reg_loss
     #model_spec['mape'] = mape
     model_spec['accuracy'] = accuracy
     model_spec['metrics_init_op'] = metrics_init_op

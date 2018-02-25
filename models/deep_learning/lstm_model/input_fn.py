@@ -12,7 +12,7 @@ def pad_tweets(tweets, time_step, tweet_batch_size, max_tweet_len):
                 if (len(tweet) > max_tweet_len):
                     print("found tweet of length", len(tweet))
                 idx = 0
-                while idx < len(tweet):
+                while idx < len(tweet) and idx < max_tweet_len:
                     np_tweets[i][t][j][idx] = tweet[idx]
                     idx += 1
     return np_tweets
@@ -21,7 +21,7 @@ def get_tweet_len(tweets):
     tweet_len = [[[len(tweet) for tweet in batch] for batch in x] for x in tweets]
     return np.array(tweet_len)
 
-def load_tweets_and_prices(path_embeddings, path_batches, params):
+def load_tweets_and_prices(path_embeddings, path_batches, params, cap):
     """Create tf.data Instance from txt file
 
     Args:
@@ -35,14 +35,13 @@ def load_tweets_and_prices(path_embeddings, path_batches, params):
     tweets, prv_price_dir, price_dir = [], [], []
     for filename in os.listdir(path_batches):
         city = filename[:filename.find("_weekly_batch")]
-        if 'lucknow' not in city:
-            continue
         print("processing", city)
         city_tweets = []
         with open(path_embeddings + city + "_embeddings.csv", "r") as embf:
             for tweet in embf:
                 city_tweets.append([int(num) for num in tweet.split(',')])
         with open(path_batches + filename, "r") as batchf:
+            total = 0
             for batch in batchf:
                 nums = np.array([int(x) for x in batch.split('\t')])
                 tweet_idx = np.reshape(nums[:params.time_step*params.tweet_batch_size], (params.time_step, params.tweet_batch_size))
@@ -50,8 +49,12 @@ def load_tweets_and_prices(path_embeddings, path_batches, params):
                 tweets.append([[city_tweets[idx] for idx in tweet] for tweet in tweet_idx])
                 prv_price_dir.append(cur_price_dir[:params.time_step])
                 price_dir.append(cur_price_dir[-1])
-        prv_price_dir= np.array(prv_price_dir)
-        price_dir = np.array(price_dir)
+                total += 1
+                if total == cap:
+                    break
+    prv_price_dir = np.array(prv_price_dir)
+    price_dir = np.array(price_dir)
+    print(len(tweets))
 
     tweet_len = tf.data.Dataset.from_tensor_slices(get_tweet_len(tweets))
     prv_price_dir_tf = tf.data.Dataset.from_tensor_slices(prv_price_dir)

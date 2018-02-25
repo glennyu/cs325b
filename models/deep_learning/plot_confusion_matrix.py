@@ -39,10 +39,6 @@ def plot_confusion_matrix(cm, classes, normalize=False, title='Confusion matrix'
     plt.xlabel('Predicted label')
 
 # Compute confusion matrix
-#train_cnf_matrix = np.array([[13131, 59, 198], [49, 2287, 90], [203, 136, 13847]]).T
-#eval_cnf_matrix = np.array([[3379, 148, 2886], [212, 167, 182], [1408, 110, 1508]]).T
-#train_cnf_matrix = np.array([[33155, 16489], [8021, 14759]]).T
-#eval_cnf_matrix = np.array([[6601, 6406], [3647, 3874]]).T
 train_cnf_matrix = np.array([[33935, 634, 7758], [0, 0, 0], [6833, 1262, 22002]]).T
 eval_cnf_matrix = np.array([[8343, 332, 4670], [0, 0, 0], [4337, 348, 2498]]).T
 np.set_printoptions(precision=2)
