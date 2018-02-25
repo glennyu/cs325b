@@ -10,6 +10,7 @@ from sklearn.metrics import confusion_matrix
 
 # import some data to play with
 class_names = ['decrease', 'no change', 'increase']
+#class_names = ['no spike', 'spike']
 
 def plot_confusion_matrix(cm, classes, normalize=False, title='Confusion matrix', cmap=plt.cm.Blues):
     """
@@ -49,10 +50,10 @@ np.set_printoptions(precision=2)
 # Plot normalized confusion matrix
 plt.figure()
 plot_confusion_matrix(train_cnf_matrix, classes=class_names, normalize=True,
-                      title='Weekly Model Train Confusion Matrix')
-plt.savefig('weekly_model_train_conf_matrix.png')
+                      title='Price Direction Train Confusion Matrix')
+plt.savefig('price_change_train_conf_matrix.png')
 
 plt.figure()
 plot_confusion_matrix(eval_cnf_matrix, classes=class_names, normalize=True,
-                      title='Weekly Model Validation Confusion Matrix')
-plt.savefig('weekly_model_val_conf_matrix.png')
+                      title='Price Direction Validation Confusion Matrix')
+plt.savefig('price_change_val_conf_matrix.png')

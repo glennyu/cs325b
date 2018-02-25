@@ -22,10 +22,10 @@ def build_model(mode, word_embeddings, inputs, params):
         tweets = tf.nn.embedding_lookup(embeddings, tweets)
         #print("after embedding shape:", tweets.get_shape())
         
-        reshaped_tweets = tf.reshape(tweets, (-1, params.tweet_max_len, params.embedding_size))
+        #reshaped_tweets = tf.reshape(tweets, (-1, params.tweet_max_len, params.embedding_size))
         #print("after reshaping tweets shape:", reshaped_tweets.get_shape())
         tweet_len = inputs['tweet_lengths']
-        reshaped_tweet_len = tf.reshape(tweet_len, (-1,))
+        #reshaped_tweet_len = tf.reshape(tweet_len, (-1,))
         lstm_cell = tf.nn.rnn_cell.BasicLSTMCell(params.lstm_num_units)
         
         reg_term = 0.1
@@ -34,15 +34,13 @@ def build_model(mode, word_embeddings, inputs, params):
             tf.add_to_collection(tf.GraphKeys.REGULARIZATION_LOSSES, weight_decay)
 
         #lstm_cell = tf.contrib.rnn.DropoutWrapper(lstm_cell, output_keep_prob=1.0 - params.dropout_rate)
-        _, output = tf.nn.dynamic_rnn(lstm_cell, reshaped_tweets, sequence_length=reshaped_tweet_len, dtype=tf.float32)
+        _, output = tf.nn.dynamic_rnn(lstm_cell, tweets, sequence_length=tweet_len, dtype=tf.float32)
         #print("after lstm shape", output[1].get_shape()) 
-        output = tf.reshape(output[1], (-1, params.tweet_batch_size, params.lstm_num_units))
+        #output = tf.reshape(output[1], (-1, params.tweet_batch_size, params.lstm_num_units))
         #print("after reshape:", output.get_shape())
-        averaged_output = tf.reduce_mean(output, axis=1)
+        #averaged_output = tf.reduce_mean(output, axis=1)
         #print("after average:", averaged_output.get_shape())
-        #hidden_layer = tf.layers.dense(averaged_output, 20, activation=tf.nn.tanh)
-        hidden_layer = tf.layers.dense(averaged_output, 20, activation=tf.nn.tanh, kernel_regularizer=tf.contrib.layers.l2_regularizer(reg_term))
-
+        hidden_layer = tf.layers.dense(output[1], 20, activation=tf.nn.tanh, kernel_regularizer=tf.contrib.layers.l2_regularizer(reg_term))
         predictions = tf.layers.dense(hidden_layer, params.class_size)
         return predictions
 
@@ -99,8 +97,8 @@ def model_fn(mode, word_embeddings, inputs, params, reuse=False):
         metrics = {
             'loss': tf.metrics.mean(loss),
             'accuracy': tf.metrics.accuracy(labels=prices, predictions=predictions),
-            'auc': tf.metrics.auc(labels=tf.one_hot(prices, params.class_size), predictions=tf.nn.softmax(logits)),
-            'mean_per_class_accuracy': tf.metrics.mean_per_class_accuracy(labels=tf.one_hot(prices, params.class_size), predictions=tf.nn.softmax(logits), num_classes=params.class_size)
+            'auc': tf.metrics.auc(labels=tf.one_hot(prices, params.class_size), predictions=tf.nn.softmax(logits))
+            #'mean_per_class_accuracy': tf.metrics.mean_per_class_accuracy(labels=tf.one_hot(prices, params.class_size), predictions=tf.nn.softmax(logits), num_classes=params.class_size)
             #'true_positives': tf.metrics.true_positives(prices, predictions),
             #'false_positives': tf.metrics.false_positives(prices, predictions),
             #'true_negatives': tf.metrics.true_negatives(prices, predictions),
