@@ -7,7 +7,7 @@ import numpy as np
 import os
 
 PATH = '../data/'
-K = 4.5 # threshold distance for nearest neighbors search
+K = 5.5 # threshold distance for nearest neighbors search
 DIR = '../../../data_utils/'
 NUM_MONTHS = 35
 
@@ -85,12 +85,13 @@ def get_tweet_cnts():
 
 def output_stats(distances):
     # Generate histogram
-    fig = plt.hist(distances, bins=[i*0.5 for i in range(10)], facecolor='blue', alpha=0.5)
+    print 'Median distance: %f' % np.median(distances)
+    fig = plt.hist(distances, bins=[i*0.5 for i in range(int(K/.5) + 1)], facecolor='blue', alpha=0.5)
     plt.xlabel('Distance from Onion')
     plt.ylabel('Frequency')
     plt.title('Histogram of Word Distances from Onion')
-    plt.savefig('related_word_histogram.png')
-    
+    plt.savefig('related_word_histogram_' + str(K) + '.png')
+
 def main():
     read_file(PATH + 'glove.twitter.27B.50d.txt')
     distances = find_nearest_words('onion')
