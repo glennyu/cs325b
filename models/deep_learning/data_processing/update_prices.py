@@ -9,11 +9,21 @@ TEST = 'batches_test/'
 
 def update_folder(folder, city_to_trends, city_to_spikes):
     for filename in os.listdir(PATH + folder):
-        with open(PATH + folder + filename, 'w') as f:  
-            filename = filename.split('_')
-            city = filename[0]
-            month = int(filename[1])
-            f.write('%d,%d' % (city_to_trends[city][month], city_to_spikes[city][month]))
+        old_file = PATH + folder + filename
+        new_file = PATH + folder + filename + '_updated'
+        is_first_line = True
+        with open(old_file, 'r') as rf: 
+            with open(new_file, 'w') as wf:
+                filename = filename.split('_')
+                city = filename[0]
+                month = int(filename[1])
+                for line in rf:
+                    if is_first_line:
+                        wf.write('%d,%d\n' % (city_to_trends[city][month], city_to_spikes[city][month]))
+                        is_first_line = False
+                    else:
+                        wf.write(line)
+        os.rename(new_file, old_file) 
 
 def update_batch_files(city_to_trends, city_to_spikes):
     update_folder(TRAIN, city_to_trends, city_to_spikes)
