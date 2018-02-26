@@ -4,24 +4,25 @@ import tensorflow as tf
 import numpy as np
 import os
 
-def pad_tweets(tweets, time_step, tweet_batch_size, max_tweet_len):
-    np_tweets = np.zeros((len(tweets), time_step, tweet_batch_size, max_tweet_len), dtype=np.int32)
-    for i in range(len(tweets)):
-        for t, batch in enumerate(tweets[i]):
-            for j, tweet in enumerate(batch):
-                if (len(tweet) > max_tweet_len):
-                    print("found tweet of length", len(tweet))
-                idx = 0
-                while idx < len(tweet) and idx < max_tweet_len:
-                    np_tweets[i][t][j][idx] = tweet[idx]
-                    idx += 1
+NUM_MONTHS = 35
+
+def pad_tweets(tweets, max_tweet_len):
+    np_tweets = np.zeros((len(tweets), len(tweets[0]), max_tweet_len), dtype=np.int32)
+    for i, batch in enumerate(tweets):
+        for j, tweet in enumerate(batch):
+            if (len(tweet) > max_tweet_len):
+                print("found tweet of length", len(tweet))
+            idx = 0
+            while idx < len(tweet):
+                np_tweets[i][j][idx] = tweet[idx]
+                idx += 1
     return np_tweets
 
 def get_tweet_len(tweets):
-    tweet_len = [[[len(tweet) for tweet in batch] for batch in x] for x in tweets]
-    return np.array(tweet_len)
+    tweet_len = [[len(tweet) for tweet in batch] for batch in tweets]
+    return tweet_len
 
-def load_tweets_and_prices(path_embeddings, path_batches, params, cap):
+def load_tweets_and_prices(path_embeddings, path_batches, params):
     """Create tf.data Instance from txt file
 
     Args:
@@ -32,36 +33,29 @@ def load_tweets_and_prices(path_embeddings, path_batches, params, cap):
     Returns:
         tweets, prices: (tf.Dataset) yielding list of tweet tokens, lengths, and price deviations
     """
-    tweets, prv_price_dir, price_dir = [], [], []
+    tweets, prices = [], []
     for filename in os.listdir(path_batches):
-        city = filename[:filename.find("_weekly_batch")]
-        print("processing", city)
-        city_tweets = []
-        with open(path_embeddings + city + "_embeddings.csv", "r") as embf:
+        city_month = filename[:filename.find("batch")]
+        month_tweets = []
+        with open(path_embeddings + city_month + "embeddings.csv", "r") as embf:
             for tweet in embf:
-                city_tweets.append([int(num) for num in tweet.split(',')])
+                month_tweets.append([int(num) for num in tweet.split(',')])
         with open(path_batches + filename, "r") as batchf:
-            total = 0
+            priceLine = True
+            yVal = -1
             for batch in batchf:
-                nums = np.array([int(x) for x in batch.split('\t')])
-                tweet_idx = np.reshape(nums[:params.time_step*params.tweet_batch_size], (params.time_step, params.tweet_batch_size))
-                cur_price_dir = nums[params.time_step*params.tweet_batch_size:]
-                tweets.append([[city_tweets[idx] for idx in tweet] for tweet in tweet_idx])
-                prv_price_dir.append(cur_price_dir[:params.time_step])
-                price_dir.append(cur_price_dir[-1])
-                total += 1
-                if total == cap:
-                    break
-    prv_price_dir = np.array(prv_price_dir)
-    price_dir = np.array(price_dir)
-    print(len(tweets))
+                if priceLine:
+                    yVal = int(batch.split(',')[3 - params.class_size]) #0 = predict price change, 1 = predict price spike
+                    priceLine = False
+                else:
+                    tweets.append([month_tweets[int(idx)] for idx in batch.split('\t')])
+                    prices.append(yVal)
 
-    tweet_len = tf.data.Dataset.from_tensor_slices(get_tweet_len(tweets))
-    prv_price_dir_tf = tf.data.Dataset.from_tensor_slices(prv_price_dir)
-    tweets = tf.data.Dataset.from_tensor_slices(pad_tweets(tweets, params.time_step, params.tweet_batch_size, params.tweet_max_len))
-    tweets = tf.data.Dataset.zip((tweets, tweet_len, prv_price_dir_tf))
-    price_dir = tf.data.Dataset.from_tensor_slices(np.array(price_dir))
-    return tweets, price_dir
+    tweet_len = tf.data.Dataset.from_tensor_slices(tf.constant(get_tweet_len(tweets), dtype=tf.int32))
+    tweets = tf.data.Dataset.from_tensor_slices(tf.constant(pad_tweets(tweets, params.tweet_max_len), dtype=tf.int32))
+    tweets = tf.data.Dataset.zip((tweets, tweet_len))
+    prices = tf.data.Dataset.from_tensor_slices(tf.constant(prices, dtype=tf.int32))
+    return tweets, prices
 
 def load_word_embeddings(path_word_embeddings, params):
     """Create np array of word embeddings
@@ -109,15 +103,14 @@ def input_fn(mode, tweets, prices, params):
     iterator = dataset.make_initializable_iterator()
 
     # Query the output of the iterator for input to the model
-    ((tweets, tweet_len, prv_prices), prices) = iterator.get_next()
+    ((tweets, tweet_len), prices) = iterator.get_next()
     init_op = iterator.initializer
 
     # Build and return a dictionary containing the nodes / ops
     inputs = {
         'tweets': tweets,
-        'tweet_lengths': tweet_len,
-        'prv_prices': prv_prices,
         'prices': prices,
+        'tweet_lengths': tweet_len,
         'iterator_init_op': init_op
     }
     
