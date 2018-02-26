@@ -45,6 +45,7 @@ def load_tweets_and_prices(path_embeddings, path_batches, params):
         tweets, prices: (tf.Dataset) yielding list of tweet tokens, lengths, and price deviations
     """
     tweets, prices = [], []
+    cnt = np.zeros((3,))
     for filename in os.listdir(path_batches):
         city_month = filename[:filename.find("batch")]
         month_tweets = []
@@ -66,6 +67,9 @@ def load_tweets_and_prices(path_embeddings, path_batches, params):
             for tweet in embf:
                 tweets.append([int(num) for num in tweet.split(',')])
                 prices.append(yVal)
+                cnt[yVal] += 1
+    print(len(tweets))
+    print(cnt)
 
     tweet_len = tf.data.Dataset.from_tensor_slices(tf.constant(get_tweet_len(tweets), dtype=tf.int32))
     tweets = tf.data.Dataset.from_tensor_slices(tf.constant(pad_tweets(tweets, params.tweet_max_len), dtype=tf.int32))
@@ -109,8 +113,9 @@ def input_fn(mode, tweets, prices, params):
     # Zip the tweets and the prices together
     dataset = tf.data.Dataset.zip((tweets, prices))
 
+    seed = tf.placeholder(tf.int64, shape=())
     dataset = (dataset
-        .shuffle(buffer_size=buffer_size)
+        .shuffle(buffer_size=buffer_size, seed=seed)
         .batch(params.batch_size)
         .prefetch(1)  # make sure you always have one batch ready to serve
     )
@@ -127,7 +132,8 @@ def input_fn(mode, tweets, prices, params):
         'tweets': tweets,
         'prices': prices,
         'tweet_lengths': tweet_len,
-        'iterator_init_op': init_op
+        'iterator_init_op': init_op,
+        'seed': seed
     }
     
     return inputs

@@ -11,19 +11,21 @@ from model.utils import save_dict_to_json
 from model.evaluation import evaluate_sess
 
 
-def train_sess(sess, model_spec, num_steps, writer, params):
+def train_sess(sess, model_spec, num_steps, epoch, writer, params):
     """Train the model on `num_steps` batches
 
     Args:
         sess: (tf.Session) current session
         model_spec: (dict) contains the graph operations or nodes needed for training
         num_steps: (int) train for this number of batches
+        epoch: (int) epoch number
         writer: (tf.summary.FileWriter) writer for summaries
         params: (Params) hyperparameters
     """
     # Get relevant graph operations or nodes needed for training
     loss = model_spec['loss']
     prices = model_spec['prices']
+    logits = model_spec['logits']
     predictions = model_spec['predictions']
     train_op = model_spec['train_op']
     update_metrics = model_spec['update_metrics']
@@ -32,7 +34,7 @@ def train_sess(sess, model_spec, num_steps, writer, params):
     global_step = tf.train.get_global_step()
 
     # Load the training dataset into the pipeline and initialize the metrics local variables
-    sess.run(model_spec['iterator_init_op'])
+    sess.run(model_spec['iterator_init_op'], feed_dict={model_spec['seed']: epoch})
     sess.run(model_spec['metrics_init_op'])
 
     cur_conf_matrix = np.zeros((params.class_size, params.class_size), dtype=np.int32)
@@ -43,16 +45,18 @@ def train_sess(sess, model_spec, num_steps, writer, params):
         # Evaluate summaries for tensorboard only once in a while
         if i % params.save_summary_steps == 0:
             # Perform a mini-batch update
-            _, _, loss_val, summ, global_step_val, pred, pri = sess.run([train_op, update_metrics, loss,
-                                                              summary_op, global_step, predictions, prices])
-            # print(pred)
-            # print(pri)
+            _, _, loss_val, summ, global_step_val, pred, pri, lg = sess.run([train_op, update_metrics, loss,
+                                                              summary_op, global_step, predictions, prices, logits])
+            #print(pred)
+            #print(pri)
+            #print(lg)
             # Write summaries for tensorboard
             writer.add_summary(summ, global_step_val)
         else:
-            _, _, loss_val, pred, pri = sess.run([train_op, update_metrics, loss, predictions, prices])
-            # print(pred)
-            # print(pri)
+            _, _, loss_val, pred, pri, lg = sess.run([train_op, update_metrics, loss, predictions, prices, logits])
+            #print(pred)
+            #print(pri)
+            #print(lg)
         # Log the loss in the tqdm progress bar
         t.set_postfix(loss='{:05.3f}'.format(loss_val))
         for j in range(len(pred)):
@@ -107,7 +111,7 @@ def train_and_evaluate(train_model_spec, eval_model_spec, results_dir, params, r
             logging.info("Epoch {}/{}".format(epoch + 1, begin_at_epoch + params.num_epochs))
             # Compute number of batches in one epoch (one full pass over the training set)
             num_steps = (params.train_size + params.batch_size - 1) // params.batch_size
-            train_conf_matrix = train_sess(sess, train_model_spec, num_steps, train_writer, params)
+            train_conf_matrix = train_sess(sess, train_model_spec, num_steps, epoch, train_writer, params)
 
             # Save weights
             # last_save_path = os.path.join(results_dir, 'last_weights', 'after-epoch')
@@ -115,7 +119,7 @@ def train_and_evaluate(train_model_spec, eval_model_spec, results_dir, params, r
 
             # Evaluate for one epoch on validation set
             num_steps = (params.eval_size + params.batch_size - 1) // params.batch_size
-            metrics, m = evaluate_sess(sess, eval_model_spec, num_steps, eval_writer, params)
+            metrics, m = evaluate_sess(sess, eval_model_spec, num_steps, epoch, eval_writer, params)
 
             # If best_eval, best_save_path
             eval_acc = metrics['accuracy']

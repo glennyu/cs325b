@@ -10,13 +10,14 @@ import numpy as np
 from model.utils import save_dict_to_json
 
 
-def evaluate_sess(sess, model_spec, num_steps, writer=None, params=None):
+def evaluate_sess(sess, model_spec, num_steps, epoch, writer=None, params=None):
     """Train the model on `num_steps` batches.
 
     Args:
         sess: (tf.Session) current session
         model_spec: (dict) contains the graph operations or nodes needed for training
         num_steps: (int) train for this number of batches
+        epoch: (int) epoch number
         writer: (tf.summary.FileWriter) writer for summaries. Is None if we don't log anything
         params: (Params) hyperparameters
     """
@@ -27,7 +28,7 @@ def evaluate_sess(sess, model_spec, num_steps, writer=None, params=None):
     global_step = tf.train.get_global_step()
 
     # Load the evaluation dataset into the pipeline and initialize the metrics init op
-    sess.run(model_spec['iterator_init_op'])
+    sess.run(model_spec['iterator_init_op'], feed_dict={model_spec['seed']: epoch})
     sess.run(model_spec['metrics_init_op'])
 
     cur_conf_matrix = np.zeros((params.class_size, params.class_size), dtype=np.int32)
@@ -35,6 +36,8 @@ def evaluate_sess(sess, model_spec, num_steps, writer=None, params=None):
     # compute metrics over the dataset
     for _ in range(num_steps):
         _, pred, pri = sess.run([update_metrics, predictions, prices])
+        #print(pred)
+        #print(pri)
         for j in range(len(pred)):
             cur_conf_matrix[pred[j]][pri[j]] += 1
 
