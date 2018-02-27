@@ -10,7 +10,7 @@ from model.utils import Params
 
 PYTHON = sys.executable
 parser = argparse.ArgumentParser()
-parser.add_argument('--parent_dir', default='experiments/learning_rate',
+parser.add_argument('--parent_dir', default='experiments/base_model',
                     help="Directory containing params.json")
 parser.add_argument('--data_dir', default='data/',
                     help="Directory containing the dataset")
@@ -50,12 +50,15 @@ if __name__ == "__main__":
     params = Params(json_path)
 
     # Perform hypersearch over one parameter
-    learning_rates = [1e-4, 5e-4, 1e-3, 5e-3, 1e-2, 5e-2]
+    learning_rates = [1e-3, 2e-3, 3e-3, 4e-3]
+    dropout = [0.2, 0.3, 0.4]
 
     for learning_rate in learning_rates:
-        # Modify the relevant parameter in params
-        params.learning_rate = learning_rate
+        for dropout_rate in dropout:
+            # Modify the relevant parameter in params
+            params.learning_rate = learning_rate
+            params.dropout_rate = dropout_rate
 
-        # Launch job (name has to be unique)
-        job_name = "learning_rate_{}".format(learning_rate)
-        launch_training_job(args.parent_dir, args.data_dir, job_name, params)
+            # Launch job (name has to be unique)
+            job_name = "lr_{lr}dp_{dp}".format(lr=learning_rate, dp=dropout_rate)
+            launch_training_job(args.parent_dir, args.data_dir, job_name, params)

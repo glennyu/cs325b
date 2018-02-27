@@ -22,7 +22,18 @@ def get_tweet_len(tweets):
     tweet_len = [len(tweet) for tweet in tweets]
     return tweet_len
 
-def load_tweets_and_prices(path_embeddings, path_batches, params):
+MIN_DIST = 4
+ONION = 20115
+TOMATO = 20279
+
+def is_relevant(tweet, word_embeddings):
+    for word in tweet:
+        embedding = np.array(word_embeddings[word])
+        if (np.linalg.norm(embedding - word_embeddings[TOMATO]) <= MIN_DIST):
+            return True
+    return False
+
+def load_tweets_and_prices(path_embeddings, path_batches, word_embeddings, params):
     """Create tf.data Instance from txt file
 
     Args:
@@ -42,23 +53,27 @@ def load_tweets_and_prices(path_embeddings, path_batches, params):
             yVal = -1
             for batch in batchf:
                 if priceLine:
-                    yVal = int(batch.split(',')[2 + 3 - params.class_size]) #0 = predict price change, 1 = predict price spike
+                    yVal = int(batch.split(',')[3 - params.class_size]) #0 = predict price change, 1 = predict price spike
                     priceLine = False
                 else:
                     break
         with open(path_embeddings + city_month + "embeddings.csv", "r") as embf:
             for tweet in embf:
-                tweets.append([int(num) for num in tweet.split(',')])
-                prices.append(yVal)
-                label_distribution[yVal] += 1
+                cur_tweet = [int(num) for num in tweet.split(',')]
+                if (is_relevant(cur_tweet, word_embeddings)):
+                    tweets.append(cur_tweet)
+                    prices.append(yVal)
+                    label_distribution[yVal] += 1
 
     tweet_lens = np.array(get_tweet_len(tweets))
-    np.random.seed(325)
-    idx = np.random.choice(126441, params.train_size)
-    tweets = pad_tweets(tweets, params.tweet_max_len)[idx]
-    prices = np.array(prices)[idx]
-    tweet_lens = tweet_lens[idx]
+    tweets = pad_tweets(tweets, params.tweet_max_len)
+    #np.random.seed(325)
+    #idx = np.random.choice(42229, params.train_size)
+    #tweets = tweets[idx]
+    #prices = np.array(prices)[idx]
+    #tweet_lens = tweet_lens[idx]
     print(tweets.shape)
+    print(label_distribution)
 
     tweet_len = tf.data.Dataset.from_tensor_slices(tf.constant(tweet_lens, dtype=tf.int32))
     tweets = tf.data.Dataset.from_tensor_slices(tf.constant(tweets, dtype=tf.int32))
@@ -78,6 +93,8 @@ def load_word_embeddings(path_word_embeddings, params):
     word_embeddings = []
     with open (path_word_embeddings, "r") as f:
         for line in f:
+            if (line.split()[0] == 'onion'):
+                print(len(word_embeddings))
             word_embeddings.append([float(x) for x in line.split()[1:]])
             while (len(word_embeddings[-1]) < params.embedding_size):
                 word_embeddings[-1].append(0.0)

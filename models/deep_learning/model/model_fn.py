@@ -30,10 +30,10 @@ def build_model(mode, word_embeddings, inputs, is_training, params):
         lstm_cell = tf.contrib.rnn.DropoutWrapper(lstm_cell, output_keep_prob=1.0 - params.dropout_rate)
         _, output = tf.nn.dynamic_rnn(lstm_cell, tweets, sequence_length=tweet_len, dtype=tf.float32)
 
-        hidden_layer1 = tf.layers.dense(output[1], 50, activation=tf.nn.relu, kernel_regularizer=tf.contrib.layers.l2_regularizer(params.reg_term))
-        dropout1 = tf.layers.dropout(hidden_layer1, rate=params.dropout_rate, training=is_training)
-        hidden_layer2 = tf.layers.dense(dropout1, 30, activation=tf.nn.relu, kernel_regularizer=tf.contrib.layers.l2_regularizer(params.reg_term))
-        predictions = tf.layers.dense(hidden_layer2, params.class_size, kernel_regularizer=tf.contrib.layers.l2_regularizer(params.reg_term))
+        hidden_layer1 = tf.layers.dense(output[1], 50, activation=tf.nn.tanh, kernel_regularizer=tf.contrib.layers.l2_regularizer(params.reg_term))
+        hidden_layer2 = tf.layers.dense(hidden_layer1, 30, activation=tf.nn.tanh, kernel_regularizer=tf.contrib.layers.l2_regularizer(params.reg_term))
+        dropout = tf.layers.dropout(hidden_layer2, rate=params.dropout_rate, training=is_training)
+        predictions = tf.layers.dense(dropout, params.class_size, kernel_regularizer=tf.contrib.layers.l2_regularizer(params.reg_term))
         return predictions
 
 def model_fn(mode, word_embeddings, inputs, params, reuse=False):
