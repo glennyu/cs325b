@@ -40,7 +40,7 @@ def build_model(mode, word_embeddings, inputs, params):
         #print("after reshape:", output.get_shape())
         averaged_output = tf.reduce_mean(output, axis=1)
         #print("after average:", averaged_output.get_shape())
-        hidden_layer = tf.layers.dense(output, 20, activation=tf.nn.tanh, kernel_regularizer=tf.contrib.layers.l2_regularizer(reg_term))
+        hidden_layer = tf.layers.dense(averaged_output, 20, activation=tf.nn.tanh, kernel_regularizer=tf.contrib.layers.l2_regularizer(reg_term))
         predictions = tf.layers.dense(hidden_layer, params.class_size)
         return predictions
 
