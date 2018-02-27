@@ -35,7 +35,7 @@ def evaluate_sess(sess, model_spec, num_steps, epoch, writer=None, params=None):
 
     # compute metrics over the dataset
     for _ in range(num_steps):
-        _, pred, pri = sess.run([update_metrics, predictions, prices])
+        _, pred, pri = sess.run([update_metrics, predictions, prices], feed_dict={model_spec['is_training'] : False})
         #print(pred)
         #print(pri)
         for j in range(len(pred)):

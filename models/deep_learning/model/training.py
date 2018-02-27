@@ -46,14 +46,16 @@ def train_sess(sess, model_spec, num_steps, epoch, writer, params):
         if i % params.save_summary_steps == 0:
             # Perform a mini-batch update
             _, _, loss_val, summ, global_step_val, pred, pri, lg = sess.run([train_op, update_metrics, loss,
-                                                              summary_op, global_step, predictions, prices, logits])
+                                                              summary_op, global_step, predictions, prices, logits], 
+                                                              feed_dict={model_spec['is_training'] : True})
             #print(pred)
             #print(pri)
             #print(lg)
             # Write summaries for tensorboard
             writer.add_summary(summ, global_step_val)
         else:
-            _, _, loss_val, pred, pri, lg = sess.run([train_op, update_metrics, loss, predictions, prices, logits])
+            _, _, loss_val, pred, pri, lg = sess.run([train_op, update_metrics, loss, predictions, prices, logits],
+                                        feed_dict={model_spec['is_training'] : True})
             #print(pred)
             #print(pri)
             #print(lg)
@@ -120,6 +122,9 @@ def train_and_evaluate(train_model_spec, eval_model_spec, results_dir, params, r
             # Evaluate for one epoch on validation set
             num_steps = (params.eval_size + params.batch_size - 1) // params.batch_size
             metrics, m = evaluate_sess(sess, eval_model_spec, num_steps, epoch, eval_writer, params)
+
+            logging.info("- Current Training Confusion Matrix:\n {}".format(train_conf_matrix))
+            logging.info("- Current Evaluation Confusion Matrix:\n {}".format(m))
 
             # If best_eval, best_save_path
             eval_acc = metrics['accuracy']
