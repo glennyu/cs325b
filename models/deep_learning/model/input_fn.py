@@ -22,14 +22,14 @@ def get_tweet_len(tweets):
     tweet_len = [len(tweet) for tweet in tweets]
     return tweet_len
 
-MIN_DIST = 4
+MIN_DIST = 2
 ONION = 20115
 TOMATO = 20279
 
 def is_relevant(tweet, word_embeddings):
     for word in tweet:
         embedding = np.array(word_embeddings[word])
-        if (np.linalg.norm(embedding - word_embeddings[TOMATO]) <= MIN_DIST):
+        if (np.linalg.norm(embedding - word_embeddings[ONION]) <= MIN_DIST):
             return True
     return False
 

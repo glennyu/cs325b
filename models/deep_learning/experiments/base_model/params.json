@@ -2,15 +2,15 @@
     "class_size": 3,
     "tweet_max_len": 70,
     "tweet_batch_size": 50,
-    "train_size": 149106,
-    "eval_size": 42229,
+    "train_size": 1852,
+    "eval_size": 534,
 
     "model_version": "lstm1",
     "lstm_num_units": 50,
     "embedding_size": 50,
 
     "learning_rate": 2e-3,
-    "batch_size": 64,
+    "batch_size": 32,
     "num_epochs": 20,
     "dropout_rate": 0.2,
     "reg_term": 0.001,
