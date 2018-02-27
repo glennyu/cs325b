@@ -3,20 +3,9 @@
 import tensorflow as tf
 import numpy as np
 import os
+from random import shuffle
 
 NUM_MONTHS = 35
-
-def pad_tweets2(tweets, max_tweet_len):
-    np_tweets = np.zeros((len(tweets), len(tweets[0]), max_tweet_len), dtype=np.int32)
-    for i, batch in enumerate(tweets):
-        for j, tweet in enumerate(batch):
-            if (len(tweet) > max_tweet_len):
-                print("found tweet of length", len(tweet))
-            idx = 0
-            while idx < len(tweet):
-                np_tweets[i][j][idx] = tweet[idx]
-                idx += 1
-    return np_tweets
 
 def pad_tweets(tweets, max_tweet_len):
     np_tweets = np.zeros((len(tweets), max_tweet_len), dtype=np.int32)
@@ -45,34 +34,34 @@ def load_tweets_and_prices(path_embeddings, path_batches, params):
         tweets, prices: (tf.Dataset) yielding list of tweet tokens, lengths, and price deviations
     """
     tweets, prices = [], []
-    cnt = np.zeros((3,))
+    label_distribution = np.zeros((3,), dtype=np.int32)
     for filename in os.listdir(path_batches):
         city_month = filename[:filename.find("batch")]
-        month_tweets = []
-        #with open(path_embeddings + city_month + "embeddings.csv", "r") as embf:
-        #    for tweet in embf:
-        #        month_tweets.append([int(num) for num in tweet.split(',')])
         with open(path_batches + filename, "r") as batchf:
             priceLine = True
             yVal = -1
             for batch in batchf:
                 if priceLine:
-                    yVal = int(batch.split(',')[3 - params.class_size]) #0 = predict price change, 1 = predict price spike
+                    yVal = int(batch.split(',')[2 + 3 - params.class_size]) #0 = predict price change, 1 = predict price spike
                     priceLine = False
                 else:
                     break
-                    #tweets.append([month_tweets[int(idx)] for idx in batch.split('\t')])
-                    #prices.append(yVal)
         with open(path_embeddings + city_month + "embeddings.csv", "r") as embf:
             for tweet in embf:
                 tweets.append([int(num) for num in tweet.split(',')])
                 prices.append(yVal)
-                cnt[yVal] += 1
-    print(len(tweets))
-    print(cnt)
+                label_distribution[yVal] += 1
 
-    tweet_len = tf.data.Dataset.from_tensor_slices(tf.constant(get_tweet_len(tweets), dtype=tf.int32))
-    tweets = tf.data.Dataset.from_tensor_slices(tf.constant(pad_tweets(tweets, params.tweet_max_len), dtype=tf.int32))
+    tweet_lens = np.array(get_tweet_len(tweets))
+    np.random.seed(325)
+    idx = np.random.choice(126441, params.train_size)
+    tweets = pad_tweets(tweets, params.tweet_max_len)[idx]
+    prices = np.array(prices)[idx]
+    tweet_lens = tweet_lens[idx]
+    print(tweets.shape)
+
+    tweet_len = tf.data.Dataset.from_tensor_slices(tf.constant(tweet_lens, dtype=tf.int32))
+    tweets = tf.data.Dataset.from_tensor_slices(tf.constant(tweets, dtype=tf.int32))
     tweets = tf.data.Dataset.zip((tweets, tweet_len))
     prices = tf.data.Dataset.from_tensor_slices(tf.constant(prices, dtype=tf.int32))
     return tweets, prices

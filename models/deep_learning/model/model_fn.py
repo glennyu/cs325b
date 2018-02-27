@@ -2,7 +2,7 @@
 
 import tensorflow as tf
 
-def build_model(mode, word_embeddings, inputs, params):
+def build_model(mode, word_embeddings, inputs, is_training, params):
     """Compute logits of the model (output distribution)
 
     Args:
@@ -20,28 +20,20 @@ def build_model(mode, word_embeddings, inputs, params):
     if params.model_version == "lstm1":
         embeddings = tf.constant(word_embeddings, dtype=tf.float32)
         tweets = tf.nn.embedding_lookup(embeddings, tweets)
-        #print("after embedding shape:", tweets.get_shape())
-        
-        #reshaped_tweets = tf.reshape(tweets, (-1, params.tweet_max_len, params.embedding_size))
-        #print("after reshaping tweets shape:", reshaped_tweets.get_shape())
         tweet_len = inputs['tweet_lengths']
-        #reshaped_tweet_len = tf.reshape(tweet_len, (-1,))
         lstm_cell = tf.nn.rnn_cell.BasicLSTMCell(params.lstm_num_units)
         
-        #reg_term = 0.1
         #for lstm_variable in lstm_cell.variables:
-        #    weight_decay = tf.multiply(tf.nn.l2_loss(lstm_variable), reg_term, name='weight_decay')
+        #    weight_decay = tf.multiply(tf.nn.l2_loss(lstm_variable), params.reg_term, name='weight_decay')
         #    tf.add_to_collection(tf.GraphKeys.REGULARIZATION_LOSSES, weight_decay)
 
-        #lstm_cell = tf.contrib.rnn.DropoutWrapper(lstm_cell, output_keep_prob=1.0 - params.dropout_rate)
+        lstm_cell = tf.contrib.rnn.DropoutWrapper(lstm_cell, output_keep_prob=1.0 - params.dropout_rate)
         _, output = tf.nn.dynamic_rnn(lstm_cell, tweets, sequence_length=tweet_len, dtype=tf.float32)
-        #print("after lstm shape", output[1].get_shape()) 
-        #output = tf.reshape(output[1], (-1, params.tweet_batch_size, params.lstm_num_units))
-        #print("after reshape:", output.get_shape())
-        #averaged_output = tf.reduce_mean(output, axis=1)
-        #print("after average:", averaged_output.get_shape())
-        hidden_layer = tf.layers.dense(output[1], 20, activation=tf.nn.tanh)#, kernel_regularizer=tf.contrib.layers.l2_regularizer(reg_term))
-        predictions = tf.layers.dense(hidden_layer, params.class_size)
+
+        hidden_layer1 = tf.layers.dense(output[1], 50, activation=tf.nn.relu, kernel_regularizer=tf.contrib.layers.l2_regularizer(params.reg_term))
+        dropout1 = tf.layers.dropout(hidden_layer1, rate=params.dropout_rate, training=is_training)
+        hidden_layer2 = tf.layers.dense(dropout1, 30, activation=tf.nn.relu, kernel_regularizer=tf.contrib.layers.l2_regularizer(params.reg_term))
+        predictions = tf.layers.dense(hidden_layer2, params.class_size, kernel_regularizer=tf.contrib.layers.l2_regularizer(params.reg_term))
         return predictions
 
 def model_fn(mode, word_embeddings, inputs, params, reuse=False):
@@ -59,13 +51,14 @@ def model_fn(mode, word_embeddings, inputs, params, reuse=False):
         model_spec: (dict) contains the graph operations or nodes needed for training / evaluation
     """
     is_training = (mode == 'train')
+    train_placeholder = tf.placeholder(tf.bool)
     prices = inputs['prices']
 
     # -----------------------------------------------------------
     # MODEL: define the layers of the model
     with tf.variable_scope('model', reuse=reuse):
         # Compute the output distribution of the model and the predictions
-        logits = build_model(mode, word_embeddings, inputs, params)
+        logits = build_model(mode, word_embeddings, inputs, train_placeholder, params)
         predictions = tf.argmax(logits, -1, output_type=tf.int32)
 
     # Define loss and accuracy (we need to apply a mask to account for padding)
@@ -123,6 +116,7 @@ def model_fn(mode, word_embeddings, inputs, params, reuse=False):
     model_spec = inputs
     variable_init_op = tf.group(*[tf.global_variables_initializer(), tf.tables_initializer()])
     model_spec['variable_init_op'] = variable_init_op
+    model_spec['is_training'] = train_placeholder
     model_spec['logits'] = logits
     model_spec['predictions'] = predictions
     model_spec['prices'] = prices
