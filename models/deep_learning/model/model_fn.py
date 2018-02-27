@@ -28,10 +28,10 @@ def build_model(mode, word_embeddings, inputs, params):
         #reshaped_tweet_len = tf.reshape(tweet_len, (-1,))
         lstm_cell = tf.nn.rnn_cell.BasicLSTMCell(params.lstm_num_units)
         
-        reg_term = 0.1
-        for lstm_variable in lstm_cell.variables:
-            weight_decay = tf.multiply(tf.nn.l2_loss(lstm_variable), reg_term, name='weight_decay')
-            tf.add_to_collection(tf.GraphKeys.REGULARIZATION_LOSSES, weight_decay)
+        #reg_term = 0.1
+        #for lstm_variable in lstm_cell.variables:
+        #    weight_decay = tf.multiply(tf.nn.l2_loss(lstm_variable), reg_term, name='weight_decay')
+        #    tf.add_to_collection(tf.GraphKeys.REGULARIZATION_LOSSES, weight_decay)
 
         #lstm_cell = tf.contrib.rnn.DropoutWrapper(lstm_cell, output_keep_prob=1.0 - params.dropout_rate)
         _, output = tf.nn.dynamic_rnn(lstm_cell, tweets, sequence_length=tweet_len, dtype=tf.float32)
@@ -40,7 +40,7 @@ def build_model(mode, word_embeddings, inputs, params):
         #print("after reshape:", output.get_shape())
         #averaged_output = tf.reduce_mean(output, axis=1)
         #print("after average:", averaged_output.get_shape())
-        hidden_layer = tf.layers.dense(output[1], 20, activation=tf.nn.tanh, kernel_regularizer=tf.contrib.layers.l2_regularizer(reg_term))
+        hidden_layer = tf.layers.dense(output[1], 20, activation=tf.nn.tanh)#, kernel_regularizer=tf.contrib.layers.l2_regularizer(reg_term))
         predictions = tf.layers.dense(hidden_layer, params.class_size)
         return predictions
 
@@ -92,8 +92,6 @@ def model_fn(mode, word_embeddings, inputs, params, reuse=False):
     # METRICS AND SUMMARIES
     # Metrics for evaluation using tf.metrics (average over whole dataset)
     with tf.variable_scope("metrics"):
-        print(prices)
-        print(predictions)
         metrics = {
             'loss': tf.metrics.mean(loss),
             'accuracy': tf.metrics.accuracy(labels=prices, predictions=predictions),
@@ -125,6 +123,7 @@ def model_fn(mode, word_embeddings, inputs, params, reuse=False):
     model_spec = inputs
     variable_init_op = tf.group(*[tf.global_variables_initializer(), tf.tables_initializer()])
     model_spec['variable_init_op'] = variable_init_op
+    model_spec['logits'] = logits
     model_spec['predictions'] = predictions
     model_spec['prices'] = prices
     model_spec['loss'] = loss

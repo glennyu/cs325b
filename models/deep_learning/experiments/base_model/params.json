@@ -2,17 +2,17 @@
     "class_size": 3,
     "tweet_max_len": 70,
     "tweet_batch_size": 50,
-    "train_size": 20,
-    "eval_size": 10,
+    "train_size": 448025,
+    "eval_size": 126441,
 
     "model_version": "lstm1",
     "lstm_num_units": 50,
     "embedding_size": 50,
 
-    "learning_rate": 1e-3,
-    "batch_size": 5,
+    "learning_rate": 1e-2,
+    "batch_size": 100,
     "num_epochs": 10,
     "dropout_rate": 0.5,
 
-    "save_summary_steps": 1000
+    "save_summary_steps": 100
 }
