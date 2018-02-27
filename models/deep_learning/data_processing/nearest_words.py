@@ -7,7 +7,7 @@ import numpy as np
 import os
 
 PATH = '../data/'
-K = 5.5 # threshold distance for nearest neighbors search
+K = 4.5 # threshold distance for nearest neighbors search
 DIR = '../../../data_utils/'
 NUM_MONTHS = 35
 
@@ -92,10 +92,33 @@ def output_stats(distances):
     plt.title('Histogram of Word Distances from Onion')
     plt.savefig('related_word_histogram_' + str(K) + '.png')
 
+# Returns set of all neighbors of word within threshold of K
+def get_all_neighbors(word):
+    cnt = 0
+    nbrs = set()
+    for neighbor in word_to_embedding:
+        dist = np.linalg.norm(np.array(word_to_embedding[neighbor]) - np.array(word_to_embedding[word]))
+        if (dist <= K):
+            cnt += 1
+            nbrs.add(neighbor)
+    return nbrs, cnt
+
+# Outputs the uncommon words within threshold of K from word1 and word2
+def diff_two_words(word1, word2):
+    print 'Diffing words...'
+    if (word1 not in word_to_embedding or word2 not in word_to_embedding):
+        print ' -done'
+        print 'at least one word not found in dictionary'
+    else:
+        nbrs1, cnt1 = get_all_neighbors(word1)
+        nbrs2, cnt2 = get_all_neighbors(word2)
+        print cnt1, cnt2, len(nbrs1 & nbrs2)
+
 def main():
     read_file(PATH + 'glove.twitter.27B.50d.txt')
-    distances = find_nearest_words('onion')
-    output_stats(distances)
+    diff_two_words('tomato', 'onion')
+    #distances = find_nearest_words('onion')
+    #output_stats(distances)
     #get_tweet_cnts()
 
 if __name__ == '__main__':

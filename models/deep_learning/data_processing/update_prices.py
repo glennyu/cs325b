@@ -2,6 +2,7 @@ import csv
 import os
 
 PATH = '../data/'
+PRICE_VECTOR_FILE = 'India_Tomatoes_Prices_Vector.csv'
 NUM_MONTHS = 35
 TRAIN = 'batches_train/'
 VAL = 'batches_val/'
@@ -19,7 +20,7 @@ def update_folder(folder, city_to_trends, city_to_spikes):
                 month = int(filename[1])
                 for line in rf:
                     if is_first_line:
-                        wf.write('%d,%d\n' % (city_to_trends[city][month], city_to_spikes[city][month]))
+                        wf.write('%s,%d,%d\n' % (line.strip(), city_to_trends[city][month], city_to_spikes[city][month]))
                         is_first_line = False
                     else:
                         wf.write(line)
@@ -34,7 +35,7 @@ def get_data():
     city_to_trends = {}
     city_to_spikes = {}
 
-    with open(PATH + 'India_Onion_Prices_Vector_Updated.csv') as csvfile:
+    with open(PATH + PRICE_VECTOR_FILE) as csvfile:
         reader = csv.reader(csvfile)
         next(reader, None)
         for row in reader:
