@@ -9,8 +9,9 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix
 
 # import some data to play with
-class_names = ['decrease', 'no change', 'increase']
+#class_names = ['decrease', 'no change', 'increase']
 #class_names = ['no spike', 'spike']
+class_names = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
 
 def plot_confusion_matrix(cm, classes, normalize=False, title='Confusion matrix', cmap=plt.cm.Blues):
     """
@@ -39,8 +40,126 @@ def plot_confusion_matrix(cm, classes, normalize=False, title='Confusion matrix'
     plt.xlabel('Predicted label')
 
 # Compute confusion matrix
-train_cnf_matrix = np.array([[33935, 634, 7758], [0, 0, 0], [6833, 1262, 22002]]).T
-eval_cnf_matrix = np.array([[8343, 332, 4670], [0, 0, 0], [4337, 348, 2498]]).T
+#train_cnf_matrix = np.array([[113, 1, 1, 0, 1, 16, 1],
+#                             [3, 83, 4, 3, 12, 21, 21],
+#                             [3, 2, 68, 3, 17, 32, 22],
+#                             [3, 0, 1, 63, 24, 23, 30],
+#                             [1, 0, 1, 0, 118, 21, 7],
+#                             [5, 1, 0, 0, 2, 124, 11],
+#                             [0, 1, 0, 0, 2, 13, 132]])
+train_cnf_matrix = np.array([
+[
+1841
+,
+69
+,
+59
+,
+19
+,
+110
+,
+3635
+,
+335
+]
+,
+[
+158
+,
+841
+,
+146
+,
+57
+,
+233
+,
+4325
+,
+340
+]
+,
+[
+70
+,
+90
+,
+807
+,
+73
+,
+293
+,
+4541
+,
+298
+]
+,
+[
+89
+,
+30
+,
+69
+,
+729
+,
+356
+,
+4498
+,
+403
+]
+,
+[
+103
+,
+28
+,
+25
+,
+41
+,
+1570
+,
+3911
+,
+386
+]
+,
+[
+171
+,
+23
+,
+34
+,
+13
+,
+170
+,
+5105
+,
+557
+]
+,
+[
+80
+,
+15
+,
+31
+,
+6
+,
+41
+,
+2793
+,
+3125
+]
+])
 np.set_printoptions(precision=2)
 
 # Plot non-normalized confusion matrix
@@ -50,10 +169,10 @@ np.set_printoptions(precision=2)
 # Plot normalized confusion matrix
 plt.figure()
 plot_confusion_matrix(train_cnf_matrix, classes=class_names, normalize=True,
-                      title='Price Direction Train Confusion Matrix')
-plt.savefig('price_change_train_conf_matrix.png')
+                      title='Day of Week Prediction Matrix')
+plt.savefig('day_of_week_all_conf_matrix.png')
 
-plt.figure()
-plot_confusion_matrix(eval_cnf_matrix, classes=class_names, normalize=True,
-                      title='Price Direction Validation Confusion Matrix')
-plt.savefig('price_change_val_conf_matrix.png')
+#plt.figure()
+#plot_confusion_matrix(eval_cnf_matrix, classes=class_names, normalize=True,
+#                      title='Price Direction Validation Confusion Matrix')
+#plt.savefig('price_dir_val_conf_matrix.png')
