@@ -22,7 +22,7 @@ def get_tweet_len(tweets):
     tweet_len = [len(tweet) for tweet in tweets]
     return tweet_len
 
-MIN_DIST = 2
+MIN_DIST = 3
 ONION = 20115
 TOMATO = 20279
 
