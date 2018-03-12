@@ -34,7 +34,8 @@ def load_tweets_and_prices(path_embeddings, path_batches, params):
         tweets, prices: (tf.Dataset) yielding list of tweet tokens, lengths, and price deviations
     """
     tweets, prices = [], []
-    cnt = np.zeros((3,))
+    tweet_month_idx, monthly_price = [], []
+    label_distribution = np.zeros((3,), dtype=np.int32)
     for filename in os.listdir(path_batches):
         city_month = filename[:filename.find("batch")]
         month_tweets = []
@@ -47,19 +48,26 @@ def load_tweets_and_prices(path_embeddings, path_batches, params):
             for batch in batchf:
                 if priceLine:
                     yVal = int(batch.split(',')[3 - params.class_size]) #0 = predict price change, 1 = predict price spike
+                    monthly_price.append(yVal)
                     priceLine = False
                 else:
                     tweets.append([month_tweets[int(idx)] for idx in batch.split('\t')])
+                    tweet_month_idx.append(len(monthly_price) - 1)
                     prices.append(yVal)
-                    cnt[yVal] += 1
-    print(len(tweets))
-    print(cnt)
+                    label_distribution[yVal] += 1
 
-    tweet_len = tf.data.Dataset.from_tensor_slices(tf.constant(get_tweet_len(tweets), dtype=tf.int32))
-    tweets = tf.data.Dataset.from_tensor_slices(tf.constant(pad_tweets(tweets, params.tweet_max_len), dtype=tf.int32))
+    tweet_month_idx, monthly_price = np.array(tweet_month_idx), np.array(monthly_price)
+    tweet_lens = np.array(get_tweet_len(tweets))
+    tweets = pad_tweets(tweets, params.tweet_max_len)
+    print(tweets.shape)
+    print(monthly_price.shape)
+    print(label_distribution)
+
+    tweet_len = tf.data.Dataset.from_tensor_slices(tf.constant(tweet_lens, dtype=tf.int32))
+    tweets = tf.data.Dataset.from_tensor_slices(tf.constant(tweets, dtype=tf.int32))
     tweets = tf.data.Dataset.zip((tweets, tweet_len))
     prices = tf.data.Dataset.from_tensor_slices(tf.constant(prices, dtype=tf.int32))
-    return tweets, prices
+    return tweets, prices, tweet_month_idx, monthly_price
 
 def load_word_embeddings(path_word_embeddings, params):
     """Create np array of word embeddings
@@ -79,7 +87,7 @@ def load_word_embeddings(path_word_embeddings, params):
             word_embeddings[-1] = word_embeddings[-1][:params.embedding_size]
     return np.array(word_embeddings)
 
-def input_fn(mode, tweets, prices, params):
+def input_fn(mode, tweets, prices, tweet_month_idx, monthly_price, params):
     """Input function
 
     Args:
@@ -87,6 +95,8 @@ def input_fn(mode, tweets, prices, params):
                      At training, we shuffle the data and have multiple epochs
         tweets: (tf.Dataset) yielding list of tweets
         prices: (tf.Dataset) yielding list of prices
+        tweet_month_idx: maps tweet index to the city-month index
+        monthly_price: price for the city-month index
         params: (Params) contains hyperparameters of the model (ex: `params.num_epochs`)
 
     """
@@ -116,6 +126,8 @@ def input_fn(mode, tweets, prices, params):
         'tweets': tweets,
         'prices': prices,
         'tweet_lengths': tweet_len,
+        'tweet_month_idx': tweet_month_idx,
+        'monthly_price': monthly_price,
         'iterator_init_op': init_op,
         'seed': seed
     }
