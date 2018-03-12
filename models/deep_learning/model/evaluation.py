@@ -32,6 +32,7 @@ def evaluate_sess(sess, model_spec, num_steps, epoch, writer=None, params=None):
     sess.run(model_spec['metrics_init_op'])
 
     cur_conf_matrix = np.zeros((params.class_size, params.class_size), dtype=np.int32)
+    agg_conf_matrix = np.zeros((params.class_size, params.class_size), dtype=np.int32)
     cur_votes = np.zeros((model_spec['monthly_price'].shape[0], params.class_size), dtype=np.int32)
     
     # compute metrics over the dataset
@@ -46,6 +47,8 @@ def evaluate_sess(sess, model_spec, num_steps, epoch, writer=None, params=None):
     
     month_pred = np.argmax(cur_votes, axis=1)
     aggregate_acc = 1.0*np.sum(month_pred == model_spec['monthly_price'])/cur_votes.shape[0]
+    for i in range(month_pred.shape[0]):
+        agg_conf_matrix[month_pred[i]][model_spec['monthly_price'][i]] += 1
 
     # Get the values of the metrics
     metrics_values = {k: v[0] for k, v in eval_metrics.items()}
@@ -60,7 +63,7 @@ def evaluate_sess(sess, model_spec, num_steps, epoch, writer=None, params=None):
             summ = tf.Summary(value=[tf.Summary.Value(tag=tag, simple_value=val)])
             writer.add_summary(summ, global_step_val)
 
-    return metrics_val, cur_conf_matrix, aggregate_acc
+    return metrics_val, cur_conf_matrix, aggregate_acc, agg_conf_matrix
 
 
 def evaluate(model_spec, model_dir, params, restore_from):
