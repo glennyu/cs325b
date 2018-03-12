@@ -2,14 +2,18 @@ from collections import defaultdict
 import csv
 import numpy as np
 from sklearn.linear_model import RidgeClassifier as RC
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.metrics import accuracy_score
 
-DIR = '/Users/glennyu/Downloads/'
+DIR = '../data/'
 NUM_MONTHS = 38
 START_MONTH = 10
 START_YEAR = 2013
 END_MONTH = 11
 END_YEAR = 2016
 WINDOW = 3 # Number of previous months to use
+model = "Random Forest"
 
 # Return map from city to array of prices by month
 def get_prices():
@@ -67,16 +71,51 @@ def split_data(city_to_prices):
     print 'decrease: %d, no change: %d, increase: %d' % (decrease, no_change, increase)
     return np.array(X), np.array(y)
 
+def random_forest_classifier(features, target):
+    """
+    To train the random forest classifier with features and target data
+    :param features:
+    :param target:
+    :return: trained random forest classifier
+    """
+    clf = RandomForestClassifier()
+    clf.fit(features, target)
+    return clf
+
+def gradient_boosting_classifier(features, target):
+    """
+    To train the random forest classifier with features and target data
+    :param features:
+    :param target:
+    :return: trained random forest classifier
+    """
+    clf = GradientBoostingClassifier(n_estimators=200, max_depth=4)
+    clf.fit(features, target)
+    return clf
+
 # Output training and validation accuracies using 
 # Ridge Classifier
 def train_model(X, y):
     X_train, y_train = X[:len(X)/2], y[:len(y)/2]
     X_val, y_val = X[len(X)/2:], y[len(y)/2:]
-    clf = RC()
-    clf.fit(X_train, y_train)
-    mean_train_acc = clf.score(X_train, y_train)
-    mean_val_acc = clf.score(X_val, y_val)
-    #print clf.predict(X_val)
+
+    if model == "Random Forest":
+        trained_model = random_forest_classifier(X_train, y_train)
+        predictions = trained_model.predict(X_val)
+        mean_train_acc = accuracy_score(y_train, trained_model.predict(X_train))
+        mean_val_acc = accuracy_score(y_val, predictions)
+    elif model == "Ridge Classifier":
+        clf = RC()
+        clf.fit(X_train, y_train)
+        mean_train_acc = clf.score(X_train, y_train)
+        mean_val_acc = clf.score(X_val, y_val)
+    elif model == "Gradient Boosting":
+        trained_model = gradient_boosting_classifier(X_train, y_train)
+        predictions = trained_model.predict(X_val)
+        mean_train_acc = accuracy_score(y_train, trained_model.predict(X_train))
+        mean_val_acc = accuracy_score(y_val, predictions)
+    else:
+        print "Model not found"
     print 'train acc: %f, val acc: %f' % (mean_train_acc, mean_val_acc)
 
 def main():
