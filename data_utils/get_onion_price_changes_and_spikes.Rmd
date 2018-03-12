@@ -16,6 +16,7 @@ library(zoo)
 ```{r}
 india_onion_prices = read_csv('../data/India_Onion_Prices.csv', na = c("-1"))
 ```
+
 ```{r}
 df <- india_onion_prices %>%
   gather(-city, key = "Month", value = "Price") %>%
@@ -27,11 +28,17 @@ df <- india_onion_prices %>%
   mutate(
     change_from_prev_month = Price - lag(Price),
     percent_change_from_prev_month = (Price / lag(Price) - 1) * 100,
-    sign_change_from_prev_month = ifelse(change_from_prev_month > 0, 1, 
-                                  ifelse(change_from_prev_month < 0, -1, 0)),
+    sign_change_from_prev_month = ifelse(percent_change_from_prev_month > 5, 1, 
+                                  ifelse(percent_change_from_prev_month < -5, -1, 0)),
     spike = ifelse(abs(percent_change_from_prev_month) >= 10, 1, 0)
-  )
+  ) %>%
+  ungroup()
 ```
+
+```{r}
+df %>% count(sign_change_from_prev_month)
+```
+
 
 ```{r}
 vector_df <- setDT(df) %>%
