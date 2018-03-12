@@ -2,12 +2,11 @@
 
 import tensorflow as tf
 
-def build_model(mode, word_embeddings, inputs, is_training, params):
+def build_model(mode, inputs, is_training, params):
     """Compute logits of the model (output distribution)
 
     Args:
         mode: (string) 'train', 'eval', etc.
-        word_embeddings: GloVe word embeddings
         inputs: (dict) contains the inputs of the graph (features, labels...)
                 this can be `tf.placeholder` or outputs of `tf.data`
         params: (Params) contains hyperparameters of the model (ex: `params.learning_rate`)
@@ -15,32 +14,23 @@ def build_model(mode, word_embeddings, inputs, is_training, params):
     Returns:
         output: (tf.Tensor) output of the model
     """
-    tweets = inputs['tweets'] # (batch_size, tweet_batch, tweet_length)
-
-    embeddings = tf.constant(word_embeddings, dtype=tf.float32)
-    tweets = tf.nn.embedding_lookup(embeddings, tweets)
-    tweet_len = inputs['tweet_lengths']
-    lstm_cell = tf.nn.rnn_cell.BasicLSTMCell(params.lstm_num_units)
-    
-    for lstm_variable in lstm_cell.variables:
-        weight_decay = tf.multiply(tf.nn.l2_loss(lstm_variable), params.reg_term, name='weight_decay')
-        tf.add_to_collection(tf.GraphKeys.REGULARIZATION_LOSSES, weight_decay)
-
-    lstm_cell = tf.contrib.rnn.DropoutWrapper(lstm_cell, output_keep_prob=1.0 - params.dropout_rate)
-    _, output = tf.nn.dynamic_rnn(lstm_cell, tweets, sequence_length=tweet_len, dtype=tf.float32)
-
-    hidden_layer1 = tf.layers.dense(output[1], 50, activation=tf.nn.tanh, kernel_regularizer=tf.contrib.layers.l2_regularizer(params.reg_term))
-    hidden_layer2 = tf.layers.dense(hidden_layer1, 30, activation=tf.nn.tanh, kernel_regularizer=tf.contrib.layers.l2_regularizer(params.reg_term))
-    dropout = tf.layers.dropout(hidden_layer2, rate=params.dropout_rate, training=is_training)
-    predictions = tf.layers.dense(dropout, params.class_size, kernel_regularizer=tf.contrib.layers.l2_regularizer(params.reg_term))
+    features = inputs['features']
+    hidden_layer1 = tf.layers.dense(features, 200, activation=tf.nn.tanh)
+    hidden_layer2 = tf.layers.dense(hidden_layer1, 200, activation=tf.nn.tanh)
+    hidden_layer3 = tf.layers.dense(hidden_layer2, 100, activation=tf.nn.tanh)
+    hidden_layer4 = tf.layers.dense(hidden_layer3, 100, activation=tf.nn.tanh)
+    hidden_layer5 = tf.layers.dense(hidden_layer4, 50, activation=tf.nn.tanh)
+    hidden_layer6 = tf.layers.dense(hidden_layer5, 50, activation=tf.nn.tanh)
+    hidden_layer7 = tf.layers.dense(hidden_layer6, 20, activation=tf.nn.tanh)
+    hidden_layer8 = tf.layers.dense(hidden_layer7, 20, activation=tf.nn.tanh)
+    predictions = tf.layers.dense(hidden_layer8, params.class_size)
     return predictions
 
-def model_fn(mode, word_embeddings, inputs, params, reuse=False):
+def model_fn(mode, inputs, params, reuse=False):
     """Model function defining the graph operations.
 
     Args:
         mode: (string) 'train', 'eval', etc.
-        word_embeddings: GloVe word embeddings
         inputs: (dict) contains the inputs of the graph (features, labels...)
                 this can be `tf.placeholder` or outputs of `tf.data`
         params: (Params) contains hyperparameters of the model (ex: `params.learning_rate`)
@@ -51,22 +41,21 @@ def model_fn(mode, word_embeddings, inputs, params, reuse=False):
     """
     is_training = (mode == 'train')
     train_placeholder = tf.placeholder(tf.bool)
-    prices = inputs['prices']
+    labels = inputs['labels']
 
     # -----------------------------------------------------------
     # MODEL: define the layers of the model
     with tf.variable_scope('model', reuse=reuse):
         # Compute the output distribution of the model and the predictions
-        logits = build_model(mode, word_embeddings, inputs, train_placeholder, params)
+        logits = build_model(mode, inputs, train_placeholder, params)
         predictions = tf.argmax(logits, -1, output_type=tf.int32)
 
     # Define loss and accuracy (we need to apply a mask to account for padding)
-    loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=tf.one_hot(prices, params.class_size), logits=logits))
+    loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=tf.one_hot(labels, params.class_size), logits=logits))
     reg_loss = sum(tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES))
-#     total_reg_losses = tf.Print(total_reg_losses, total_reg_losses, "Total regularization loss:")
     total_loss = loss + reg_loss    
  
-    accuracy = tf.reduce_mean(tf.cast(tf.equal(prices, predictions), tf.float32))
+    accuracy = tf.reduce_mean(tf.cast(tf.equal(labels, predictions), tf.float32))
 
     # Define training step that minimizes the loss with the Adam optimizer
     if is_training:
@@ -80,8 +69,7 @@ def model_fn(mode, word_embeddings, inputs, params, reuse=False):
     with tf.variable_scope("metrics"):
         metrics = {
             'loss': tf.metrics.mean(total_loss),
-            'accuracy': tf.metrics.accuracy(labels=prices, predictions=predictions),
-            'auc': tf.metrics.auc(labels=tf.one_hot(prices, params.class_size), predictions=tf.nn.softmax(logits))
+            'accuracy': tf.metrics.accuracy(labels=labels, predictions=predictions)
         }
 
     # Group the update ops for the tf.metrics
@@ -105,8 +93,9 @@ def model_fn(mode, word_embeddings, inputs, params, reuse=False):
     model_spec['is_training'] = train_placeholder
     model_spec['logits'] = logits
     model_spec['predictions'] = predictions
-    model_spec['prices'] = prices
+    model_spec['labels'] = labels
     model_spec['loss'] = total_loss
+    model_spec['reg_loss'] = reg_loss
     model_spec['accuracy'] = accuracy
     model_spec['metrics_init_op'] = metrics_init_op
     model_spec['metrics'] = metrics

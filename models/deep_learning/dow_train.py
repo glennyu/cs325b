@@ -6,18 +6,18 @@ import os
 
 import tensorflow as tf
 
-from model.utils import Params
-from model.utils import set_logger
-from model.training import train_and_evaluate
-from model.input_fn import input_fn
-from model.input_fn import load_tweets_and_prices, load_word_embeddings
-from model.model_fn import model_fn
+from dow_model.utils import Params
+from dow_model.utils import set_logger
+from dow_model.training import train_and_evaluate
+from dow_model.input_fn import input_fn
+from dow_model.input_fn import load_features_and_labels
+from dow_model.model_fn import model_fn
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--model_dir', default='experiments/base_model',
+parser.add_argument('--model_dir', default='experiments/dow_model',
                     help="Directory containing params.json")
-parser.add_argument('--results_dir', default='experiments/base_model/results',
+parser.add_argument('--results_dir', default='experiments/dow_model/results',
                     help="Directory containing results")
 parser.add_argument('--data_dir', default='data/', help="Directory containing the dataset")
 parser.add_argument('--restore_dir', default=None,
@@ -46,33 +46,23 @@ if __name__ == '__main__':
     set_logger(os.path.join(args.results_dir, 'train.log'))
 
     # Get paths for dataset
-    path_train_embeddings = os.path.join(args.data_dir, 'embeddings/')
-    path_train_batches = os.path.join(args.data_dir, 'batches_train/')
-    path_eval_embeddings = os.path.join(args.data_dir, 'embeddings/')
-    path_eval_batches = os.path.join(args.data_dir, 'batches_val/')
-    path_word_embeddings = os.path.join(args.data_dir, 'glove.twitter.27B.50d.txt')
-    
-    # Load word embeddings
-    logging.info("Loading word embeddings...")
-    word_embeddings = load_word_embeddings(path_word_embeddings, params)
-    logging.info("- done.")
+    path_train_features = os.path.join(args.data_dir, 'dow_delhi_feat.txt')
+    path_eval_features = os.path.join(args.data_dir, 'dow_delhi_feat.txt')
     
     # Create the input data pipeline
     logging.info("Creating the datasets...")
-    train_tweets, train_prices, train_tweet_month_idx, train_monthly_price = load_tweets_and_prices(
-        path_train_embeddings, path_train_batches, word_embeddings, params)
-    eval_tweets, eval_prices, eval_tweet_month_idx, eval_monthly_price = load_tweets_and_prices(
-        path_eval_embeddings, path_eval_batches, word_embeddings, params)
+    train_features, train_labels = load_features_and_labels(path_train_features, params, 'train')
+    eval_features, eval_labels = load_features_and_labels(path_eval_features, params, 'eval')
 
     # Create the two iterators over the two datasets
-    train_inputs = input_fn('train', train_tweets, train_prices, train_tweet_month_idx, train_monthly_price, params)
-    eval_inputs = input_fn('eval', eval_tweets, eval_prices, eval_tweet_month_idx, eval_monthly_price, params)
+    train_inputs = input_fn('train', train_features, train_labels, params)
+    eval_inputs = input_fn('eval', eval_features, eval_labels, params)
     logging.info("- done.")
 
     # Define the models (2 different set of nodes that share weights for train and eval)
     logging.info("Creating the model...")
-    train_model_spec = model_fn('train', word_embeddings, train_inputs, params)
-    eval_model_spec = model_fn('eval', word_embeddings, eval_inputs, params, reuse=True)
+    train_model_spec = model_fn('train', train_inputs, params)
+    eval_model_spec = model_fn('eval', eval_inputs, params, reuse=True)
     logging.info("- done.")
 
     # Train the model
