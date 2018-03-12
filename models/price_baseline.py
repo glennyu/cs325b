@@ -31,10 +31,12 @@ def get_prices():
 
 # Split prices into X, y for linear regression
 # by using previous three months' prices to 
-# predict next month's price direction
+# predict next month's price direction and spike
 def split_data(city_to_prices):
     X = []
-    y = []
+    y_dir = []
+    y_spike = []
+
     total = 0
     found = 0
     decrease = 0
@@ -49,6 +51,7 @@ def split_data(city_to_prices):
             if (-1 not in historical_prices and cur_price != -1):
                 X.append(historical_prices)
                 price_deviation = (cur_price - prices[i - 1]) / prices[i - 1]
+                price_spike = int(abs(price_deviation) >= 0.1)
                 #print cur_price, prices[i - 1], price_deviation
                 if (price_deviation <= 0.05 and price_deviation >= -0.05):
                     price_direction = 1
@@ -59,13 +62,14 @@ def split_data(city_to_prices):
                 else:
                     price_direction = 2
                     increase += 1
-                y.append(price_direction)
+                y_dir.append(price_direction)
+                y_spike.append(price_spike)
                 found += 1
             total += 1
 
     print 'total: %d, found: %d' % (total, found)
     print 'decrease: %d, no change: %d, increase: %d' % (decrease, no_change, increase)
-    return np.array(X), np.array(y)
+    return np.array(X), np.array(y_dir), np.array(y_spike)
 
 # Output training and validation accuracies using 
 # Ridge Classifier
@@ -81,8 +85,11 @@ def train_model(X, y):
 
 def main():
     city_to_prices = get_prices()
-    X, y = split_data(city_to_prices)
-    train_model(X, y)
+    X, y_dir, y_spike = split_data(city_to_prices)
+    print 'Predicting price direction...'
+    train_model(X, y_dir)
+    print 'Predicting price spike...'
+    train_model(X, y_spike)
 
 
 if __name__ == '__main__':
