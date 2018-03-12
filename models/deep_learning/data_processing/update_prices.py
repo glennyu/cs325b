@@ -2,7 +2,7 @@ import csv
 import os
 
 PATH = '../data/'
-PRICE_VECTOR_FILE = 'India_Tomatoes_Prices_Vector.csv'
+PRICE_VECTOR_FILE = 'India_Onion_Prices_Vector_5%.csv'
 NUM_MONTHS = 35
 TRAIN = 'batches_train/'
 VAL = 'batches_val/'
@@ -20,7 +20,7 @@ def update_folder(folder, city_to_trends, city_to_spikes):
                 month = int(filename[1])
                 for line in rf:
                     if is_first_line:
-                        wf.write('%s,%d,%d\n' % (line.strip(), city_to_trends[city][month], city_to_spikes[city][month]))
+                        wf.write('%d,%d,%s\n' % (city_to_trends[city][month], city_to_spikes[city][month], ','.join(line.strip().split(',')[-2:])))
                         is_first_line = False
                     else:
                         wf.write(line)

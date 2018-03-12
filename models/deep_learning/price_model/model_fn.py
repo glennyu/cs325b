@@ -2,7 +2,7 @@
 
 import tensorflow as tf
 
-def build_model(mode, inputs, params):
+def build_model(mode, inputs, is_training, params):
     """Compute logits of the model (output distribution)
 
     Args:
@@ -21,16 +21,16 @@ def build_model(mode, inputs, params):
     if params.model_version == 'lstm1':
         # Apply LSTM over the prices
         lstm_cell = tf.nn.rnn_cell.BasicLSTMCell(params.lstm_num_units)
-        output, _ = tf.nn.dynamic_rnn(lstm_cell, prices, dtype=tf.float32)
-        #print('after rnn output shape: ', output.get_shape())
-        output = tf.reshape(output, (-1, output.get_shape()[1]*output.get_shape()[2]))
-        #print('after reshaping rnn output shape: ', output.get_shape())
+        lstm_cell = tf.contrib.rnn.DropoutWrapper(lstm_cell, output_keep_prob=1.0 - params.dropout_rate)
+        _, output = tf.nn.dynamic_rnn(lstm_cell, prices, dtype=tf.float32)
 
-        # Compute logits from the output of the LSTM
-        hidden_layer_1 = tf.layers.dense(output, 30, activation=tf.nn.tanh)
-        #print('after HL1 output shape: ', hidden_layer_1.get_shape())
-        predictions = tf.layers.dense(hidden_layer_1, 1)
-        #print('predictions shape: ', predictions.get_shape())
+
+        hidden_layer1 = tf.layers.dense(output[1], 50, activation=tf.nn.tanh, kernel_regularizer=tf.contrib.layers.l2_regularizer(params.reg_term))
+        hidden_layer2 = tf.layers.dense(hidden_layer1, 30, activation=tf.nn.tanh, kernel_regularizer=tf.contrib.layers.l2_regularizer(params.reg_term))
+        hidden_layer3 = tf.layers.dense(hidden_layer2, 20, activation=tf.nn.tanh, kernel_regularizer=tf.contrib.layers.l2_regularizer(params.reg_term))
+        dropout = tf.layers.dropout(hidden_layer3, rate=params.dropout_rate, training=is_training)
+        predictions = tf.layers.dense(dropout, 1, kernel_regularizer=tf.contrib.layers.l2_regularizer(params.reg_term))
+        return predictions
 
     else:
         raise NotImplementedError("Unknown model version: {}".format(params.model_version))
@@ -49,6 +49,7 @@ def model_fn(mode, inputs, params, reuse=False):
         model_spec: (dict) contains the graph operations or nodes needed for training / evaluation
     """
     is_training = (mode == 'train')
+    train_placeholder = tf.placeholder(tf.bool)
     deltas = inputs['deltas']
     deltas = tf.cast(deltas, tf.float32)
 
@@ -56,14 +57,15 @@ def model_fn(mode, inputs, params, reuse=False):
     # MODEL: define the layers of the model
     with tf.variable_scope('model', reuse=reuse):
         # Compute the output distribution of the model and the predictions
-        predictions = build_model(is_training, inputs, params)
+        predictions = build_model(is_training, inputs, train_placeholder, params)
 
     # Define loss and profit
     loss = tf.reduce_mean(tf.nn.l2_loss((predictions - deltas)))
 
     # Define training step that minimizes the loss with the Adam optimizer
+    lr_placeholder = tf.placeholder(tf.float32)
     if is_training:
-        optimizer = tf.train.AdamOptimizer(params.learning_rate)
+        optimizer = tf.train.AdamOptimizer(lr_placeholder)
         global_step = tf.train.get_or_create_global_step()
         train_op = optimizer.minimize(loss, global_step=global_step)
 
@@ -93,6 +95,8 @@ def model_fn(mode, inputs, params, reuse=False):
     model_spec = inputs
     variable_init_op = tf.group(*[tf.global_variables_initializer(), tf.tables_initializer()])
     model_spec['variable_init_op'] = variable_init_op
+    model_spec['is_training'] = train_placeholder
+    model_spec['learning_rate'] = lr_placeholder
     model_spec['predictions'] = predictions
     model_spec['deltas'] = deltas
     model_spec['loss'] = loss

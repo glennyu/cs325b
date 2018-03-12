@@ -32,6 +32,15 @@ def train_sess(sess, model_spec, num_steps, epoch, writer, params):
     summary_op = model_spec['summary_op']
     global_step = tf.train.get_global_step()
 
+    # Set learning rate
+    lr = params.learning_rate
+    # if (epoch > 10):
+    #     lr = lr * 1e-1
+    # elif (epoch > 30):
+    #     lr = lr * 1e-2
+    # else:
+    #     lr = lr * 1e-3
+
     # Load the training dataset into the pipeline and initialize the metrics local variables
     sess.run(model_spec['iterator_init_op'], feed_dict={model_spec['seed']: epoch})
     sess.run(model_spec['metrics_init_op'])
@@ -43,11 +52,15 @@ def train_sess(sess, model_spec, num_steps, epoch, writer, params):
         if i % params.save_summary_steps == 0:
             # Perform a mini-batch update
             _, _, loss_val, summ, global_step_val, pred, pri = sess.run([train_op, update_metrics, loss,
-                                                              summary_op, global_step, predictions, prices])
+                                                                            summary_op, global_step, predictions, prices],  
+                                                                            feed_dict={model_spec['is_training']: True,
+                                                                                       model_spec['learning_rate']: lr})
             # Write summaries for tensorboard
             writer.add_summary(summ, global_step_val)
         else:
-            _, _, loss_val, pred, pri = sess.run([train_op, update_metrics, loss, predictions, prices])
+            _, _, loss_val, pred, pri = sess.run([train_op, update_metrics, loss, predictions, prices],
+                                                    feed_dict={model_spec['is_training']: True, 
+                                                               model_spec['learning_rate']: lr})
         # Log the loss in the tqdm progress bar
         t.set_postfix(loss='{:05.3f}'.format(loss_val))
 

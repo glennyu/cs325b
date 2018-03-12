@@ -86,7 +86,7 @@ def input_fn(mode, prices, deltas, params):
         'prices': prices,
         'deltas': deltas,
         'iterator_init_op': init_op,
-        'seed':seed
+        'seed': seed
     }
 
     return inputs

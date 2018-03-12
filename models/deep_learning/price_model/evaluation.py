@@ -34,7 +34,8 @@ def evaluate_sess(sess, model_spec, num_steps, epoch, writer=None, params=None):
 
     # compute metrics over the dataset
     for _ in range(num_steps):
-        _ = sess.run([update_metrics])
+        _ = sess.run([update_metrics], feed_dict={model_spec['is_training'] : False,
+                                                  model_spec['learning_rate']: params.learning_rate})
 
     # Get the values of the metrics
     metrics_values = {k: v[0] for k, v in eval_metrics.items()}
