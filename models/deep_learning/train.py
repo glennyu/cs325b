@@ -59,12 +59,14 @@ if __name__ == '__main__':
     
     # Create the input data pipeline
     logging.info("Creating the datasets...")
-    train_tweets, train_prices = load_tweets_and_prices(path_train_embeddings, path_train_batches, word_embeddings, params)
-    eval_tweets, eval_prices = load_tweets_and_prices(path_eval_embeddings, path_eval_batches, word_embeddings, params)
+    train_tweets, train_prices, train_tweet_month_idx, train_monthly_price = load_tweets_and_prices(
+        path_train_embeddings, path_train_batches, word_embeddings, params)
+    eval_tweets, eval_prices, eval_tweet_month_idx, eval_monthly_price = load_tweets_and_prices(
+        path_eval_embeddings, path_eval_batches, word_embeddings, params)
 
     # Create the two iterators over the two datasets
-    train_inputs = input_fn('train', train_tweets, train_prices, params)
-    eval_inputs = input_fn('eval', eval_tweets, eval_prices, params)
+    train_inputs = input_fn('train', train_tweets, train_prices, train_tweet_month_idx, train_monthly_price, params)
+    eval_inputs = input_fn('eval', eval_tweets, eval_prices, eval_tweet_month_idx, eval_monthly_price, params)
     logging.info("- done.")
 
     # Define the models (2 different set of nodes that share weights for train and eval)

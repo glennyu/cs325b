@@ -1,17 +1,15 @@
 {
     "class_size": 3,
     "tweet_max_len": 70,
-    "tweet_batch_size": 50,
     "train_size": 17077,
     "eval_size": 5001,
 
-    "model_version": "lstm1",
     "lstm_num_units": 50,
     "embedding_size": 50,
 
-    "learning_rate": 2e-3,
+    "learning_rate": 1e-3,
     "batch_size": 32,
-    "num_epochs": 20,
+    "num_epochs": 30,
     "dropout_rate": 0.2,
     "reg_term": 0.001,
 

@@ -17,24 +17,23 @@ def build_model(mode, word_embeddings, inputs, is_training, params):
     """
     tweets = inputs['tweets'] # (batch_size, tweet_batch, tweet_length)
 
-    if params.model_version == "lstm1":
-        embeddings = tf.constant(word_embeddings, dtype=tf.float32)
-        tweets = tf.nn.embedding_lookup(embeddings, tweets)
-        tweet_len = inputs['tweet_lengths']
-        lstm_cell = tf.nn.rnn_cell.BasicLSTMCell(params.lstm_num_units)
-        
-        #for lstm_variable in lstm_cell.variables:
-        #    weight_decay = tf.multiply(tf.nn.l2_loss(lstm_variable), params.reg_term, name='weight_decay')
-        #    tf.add_to_collection(tf.GraphKeys.REGULARIZATION_LOSSES, weight_decay)
+    embeddings = tf.constant(word_embeddings, dtype=tf.float32)
+    tweets = tf.nn.embedding_lookup(embeddings, tweets)
+    tweet_len = inputs['tweet_lengths']
+    lstm_cell = tf.nn.rnn_cell.BasicLSTMCell(params.lstm_num_units)
+    
+    for lstm_variable in lstm_cell.variables:
+        weight_decay = tf.multiply(tf.nn.l2_loss(lstm_variable), params.reg_term, name='weight_decay')
+        tf.add_to_collection(tf.GraphKeys.REGULARIZATION_LOSSES, weight_decay)
 
-        lstm_cell = tf.contrib.rnn.DropoutWrapper(lstm_cell, output_keep_prob=1.0 - params.dropout_rate)
-        _, output = tf.nn.dynamic_rnn(lstm_cell, tweets, sequence_length=tweet_len, dtype=tf.float32)
+    lstm_cell = tf.contrib.rnn.DropoutWrapper(lstm_cell, output_keep_prob=1.0 - params.dropout_rate)
+    _, output = tf.nn.dynamic_rnn(lstm_cell, tweets, sequence_length=tweet_len, dtype=tf.float32)
 
-        hidden_layer1 = tf.layers.dense(output[1], 50, activation=tf.nn.tanh, kernel_regularizer=tf.contrib.layers.l2_regularizer(params.reg_term))
-        hidden_layer2 = tf.layers.dense(hidden_layer1, 30, activation=tf.nn.tanh, kernel_regularizer=tf.contrib.layers.l2_regularizer(params.reg_term))
-        dropout = tf.layers.dropout(hidden_layer2, rate=params.dropout_rate, training=is_training)
-        predictions = tf.layers.dense(dropout, params.class_size, kernel_regularizer=tf.contrib.layers.l2_regularizer(params.reg_term))
-        return predictions
+    hidden_layer1 = tf.layers.dense(output[1], 50, activation=tf.nn.tanh, kernel_regularizer=tf.contrib.layers.l2_regularizer(params.reg_term))
+    hidden_layer2 = tf.layers.dense(hidden_layer1, 30, activation=tf.nn.tanh, kernel_regularizer=tf.contrib.layers.l2_regularizer(params.reg_term))
+    dropout = tf.layers.dropout(hidden_layer2, rate=params.dropout_rate, training=is_training)
+    predictions = tf.layers.dense(dropout, params.class_size, kernel_regularizer=tf.contrib.layers.l2_regularizer(params.reg_term))
+    return predictions
 
 def model_fn(mode, word_embeddings, inputs, params, reuse=False):
     """Model function defining the graph operations.
@@ -63,38 +62,26 @@ def model_fn(mode, word_embeddings, inputs, params, reuse=False):
 
     # Define loss and accuracy (we need to apply a mask to account for padding)
     loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=tf.one_hot(prices, params.class_size), logits=logits))
-    #trainable_vars = tf.trainable_variables()
-    #reg_losses = tf.reduce_sum([tf.nn.l2_loss(v) for v in trainable_vars])
-    #reg_term = 0.01
-    #print("reg_losses:", reg_losses) 
-    #loss = loss + reg_term * reg_losses    
     reg_loss = sum(tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES))
 #     total_reg_losses = tf.Print(total_reg_losses, total_reg_losses, "Total regularization loss:")
-    loss = loss + reg_loss    
+    total_loss = loss + reg_loss    
  
     accuracy = tf.reduce_mean(tf.cast(tf.equal(prices, predictions), tf.float32))
-    # mape = tf.reduce_mean(tf.abs((prices - predictions)/prices))
 
     # Define training step that minimizes the loss with the Adam optimizer
     if is_training:
         optimizer = tf.train.AdamOptimizer(params.learning_rate)
         global_step = tf.train.get_or_create_global_step()
-        train_op = optimizer.minimize(loss, global_step=global_step)
+        train_op = optimizer.minimize(total_loss, global_step=global_step)
 
     # -----------------------------------------------------------
     # METRICS AND SUMMARIES
     # Metrics for evaluation using tf.metrics (average over whole dataset)
     with tf.variable_scope("metrics"):
         metrics = {
-            'loss': tf.metrics.mean(loss),
+            'loss': tf.metrics.mean(total_loss),
             'accuracy': tf.metrics.accuracy(labels=prices, predictions=predictions),
             'auc': tf.metrics.auc(labels=tf.one_hot(prices, params.class_size), predictions=tf.nn.softmax(logits))
-            #'mean_per_class_accuracy': tf.metrics.mean_per_class_accuracy(labels=tf.one_hot(prices, params.class_size), predictions=tf.nn.softmax(logits), num_classes=params.class_size)
-            #'true_positives': tf.metrics.true_positives(prices, predictions),
-            #'false_positives': tf.metrics.false_positives(prices, predictions),
-            #'true_negatives': tf.metrics.true_negatives(prices, predictions),
-            #'false_negatives': tf.metrics.false_negatives(prices, predictions)
-            #'mape': tf.metrics.mean(mape)
         }
 
     # Group the update ops for the tf.metrics
@@ -108,7 +95,6 @@ def model_fn(mode, word_embeddings, inputs, params, reuse=False):
     tf.summary.scalar('loss', loss)
     tf.summary.scalar('reg_loss', reg_loss)
     tf.summary.scalar('accuracy', accuracy)
-    #tf.summary.scalar('mape', mape)
     # -----------------------------------------------------------
     # MODEL SPECIFICATION
     # Create the model specification and return it
@@ -120,9 +106,7 @@ def model_fn(mode, word_embeddings, inputs, params, reuse=False):
     model_spec['logits'] = logits
     model_spec['predictions'] = predictions
     model_spec['prices'] = prices
-    model_spec['loss'] = loss
-    model_spec['reg_loss'] = reg_loss
-    #model_spec['mape'] = mape
+    model_spec['loss'] = total_loss
     model_spec['accuracy'] = accuracy
     model_spec['metrics_init_op'] = metrics_init_op
     model_spec['metrics'] = metrics
