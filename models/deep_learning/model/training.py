@@ -34,7 +34,7 @@ def train_sess(sess, model_spec, num_steps, epoch, writer, params):
     global_step = tf.train.get_global_step()
 
     # Load the training dataset into the pipeline and initialize the metrics local variables
-    sess.run(model_spec['iterator_init_op'], feed_dict={model_spec['seed']: epoch})
+    sess.run(model_spec['iterator_init_op'], feed_dict={model_spec['seed']: epoch, model_spec['buffer_size'] : params.train_size})
     sess.run(model_spec['metrics_init_op'])
 
     cur_conf_matrix = np.zeros((params.class_size, params.class_size), dtype=np.int32)
@@ -46,14 +46,16 @@ def train_sess(sess, model_spec, num_steps, epoch, writer, params):
         if i % params.save_summary_steps == 0:
             # Perform a mini-batch update
             _, _, loss_val, summ, global_step_val, pred, pri, lg = sess.run([train_op, update_metrics, loss,
-                                                              summary_op, global_step, predictions, prices, logits])
+                                                              summary_op, global_step, predictions, prices, logits], 
+                                                              feed_dict={model_spec['is_training'] : True})
             #print(pred)
             #print(pri)
             #print(lg)
             # Write summaries for tensorboard
             writer.add_summary(summ, global_step_val)
         else:
-            _, _, loss_val, pred, pri, lg = sess.run([train_op, update_metrics, loss, predictions, prices, logits])
+            _, _, loss_val, pred, pri, lg = sess.run([train_op, update_metrics, loss, predictions, prices, logits],
+                                       feed_dict={model_spec['is_training'] : True})
             #print(pred)
             #print(pri)
             #print(lg)
@@ -104,6 +106,7 @@ def train_and_evaluate(train_model_spec, eval_model_spec, results_dir, params, r
 
         train_conf_matrix = np.zeros((params.class_size, params.class_size), dtype=np.int32)
         eval_conf_matrix = np.zeros((params.class_size, params.class_size), dtype=np.int32)
+        agg_conf_matrix = np.zeros((params.class_size, params.class_size), dtype=np.int32)
 
         best_eval_acc, best_agg_acc = 0.0, 0.0
         for epoch in range(begin_at_epoch, begin_at_epoch + params.num_epochs):
@@ -118,16 +121,17 @@ def train_and_evaluate(train_model_spec, eval_model_spec, results_dir, params, r
             # last_saver.save(sess, last_save_path, global_step=epoch + 1)
 
             # Evaluate on training to get accuracies
-            metrics, m, agg_acc = evaluate_sess(sess, train_model_spec, num_steps, epoch, params=params)
+            metrics, m, agg_acc, agg_m = evaluate_sess(sess, train_model_spec, num_steps, epoch, params=params)
             logging.info("- Training Aggregate Accuracy {:.3f}".format(agg_acc))
+            logging.info("- Current Training Confusion Matrix:\n {}".format(train_conf_matrix))
+            logging.info("- Current Aggregate Training Confusion Matrix:\n {}".format(agg_m))
             
             # Evaluate for one epoch on validation set
             num_steps = (params.eval_size + params.batch_size - 1) // params.batch_size
-            metrics, m, agg_acc = evaluate_sess(sess, eval_model_spec, num_steps, epoch, eval_writer, params)
+            metrics, m, agg_acc, agg_m = evaluate_sess(sess, eval_model_spec, num_steps, epoch, eval_writer, params)
             logging.info("- Evaluation Aggregate Accuracy {:.3f}".format(agg_acc))
-
-            logging.info("- Current Training Confusion Matrix:\n {}".format(train_conf_matrix))
             logging.info("- Current Evaluation Confusion Matrix:\n {}".format(m))
+            logging.info("- Current Aggregate Evaluation Confusion Matrix:\n {}".format(agg_m))
 
             # If best_eval, best_save_path
             eval_acc = metrics['accuracy']
@@ -142,12 +146,13 @@ def train_and_evaluate(train_model_spec, eval_model_spec, results_dir, params, r
                 best_json_path = os.path.join(results_dir, "metrics_eval_best_weights.json")
                 save_dict_to_json(metrics, best_json_path)
                 eval_conf_matrix = m
+                agg_conf_matrix = agg_m 
 
             # Save latest eval metrics in a json file in the model directory
             last_json_path = os.path.join(results_dir, "metrics_eval_last_weights.json")
             save_dict_to_json(metrics, last_json_path)
 
         logging.info("- Best Evaluation Accuracy {:.3f}".format(best_eval_acc))
-        logging.info("- Best Evaluation Aggregate Accuracy {:.3f}".format(best_agg_acc))
-        logging.info("- Training Confusion Matrix:\n {}".format(train_conf_matrix))
         logging.info("- Evaluation Confusion Matrix:\n {}".format(eval_conf_matrix))
+        logging.info("- Best Evaluation Aggregate Accuracy {:.3f}".format(best_agg_acc))
+        logging.info("- Aggregate Evaluation Confusion Matrix:\n {}".format(agg_conf_matrix))

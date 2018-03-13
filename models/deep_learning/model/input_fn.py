@@ -102,7 +102,7 @@ def input_fn(mode, tweets, prices, tweet_month_idx, monthly_price, params):
     """
     # Load all the dataset in memory for shuffling is training
     is_training = (mode == 'train')
-    buffer_size = params.train_size if is_training else 1
+    buffer_size = tf.placeholder(tf.int64, shape=())
 
     # Zip the tweets and the prices together
     dataset = tf.data.Dataset.zip((tweets, prices))
@@ -129,6 +129,7 @@ def input_fn(mode, tweets, prices, tweet_month_idx, monthly_price, params):
         'tweet_month_idx': tweet_month_idx,
         'monthly_price': monthly_price,
         'iterator_init_op': init_op,
+        'buffer_size': buffer_size,
         'seed': seed
     }
     
