@@ -59,6 +59,7 @@ def model_fn(mode, word_embeddings, inputs, params, reuse=False):
         model_spec: (dict) contains the graph operations or nodes needed for training / evaluation
     """
     is_training = (mode == 'train')
+    train_placeholder = tf.placeholder(tf.bool)
     prices = inputs['prices']
 
     # -----------------------------------------------------------
@@ -123,6 +124,7 @@ def model_fn(mode, word_embeddings, inputs, params, reuse=False):
     model_spec = inputs
     variable_init_op = tf.group(*[tf.global_variables_initializer(), tf.tables_initializer()])
     model_spec['variable_init_op'] = variable_init_op
+    model_spec['is_training'] = train_placeholder
     model_spec['logits'] = logits
     model_spec['predictions'] = predictions
     model_spec['prices'] = prices
