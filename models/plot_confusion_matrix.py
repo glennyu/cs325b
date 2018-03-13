@@ -47,10 +47,8 @@ def plot_confusion_matrix(cm, classes, normalize=False, title='Confusion matrix'
 #                             [1, 0, 1, 0, 118, 21, 7],
 #                             [5, 1, 0, 0, 2, 124, 11],
 #                             [0, 1, 0, 0, 2, 13, 132]])
-#train_cnf_matrix = np.array([[7617, 538, 817], [236, 1615, 302], [710, 490, 4752]]).T
-#eval_cnf_matrix = np.array([[1967, 1385, 1381], [0, 0, 0], [99, 74, 95]]).T 
-train_cnf_matrix = np.array([[8463, 966], [771, 6877]]).T
-eval_cnf_matrix = np.array([[1488, 1568], [889, 1056]]).T
+train_cnf_matrix = np.array([[103, 0], [1, 82]]).T
+eval_cnf_matrix = np.array([[27, 25], [3, 15]]).T
 np.set_printoptions(precision=2)
 
 # Plot non-normalized confusion matrix
@@ -60,10 +58,10 @@ np.set_printoptions(precision=2)
 # Plot normalized confusion matrix
 plt.figure()
 plot_confusion_matrix(train_cnf_matrix, classes=class_names, normalize=True,
-                      title='Single Tweet Model Price Spike Train')
-plt.savefig('single_price_spike_train_conf_matrix.png')
+                      title='Batch Tweet Model Aggregate Price Spike Train')
+plt.savefig('batch_price_spike_agg_train_conf_matrix.png')
 
 plt.figure()
 plot_confusion_matrix(eval_cnf_matrix, classes=class_names, normalize=True,
-                      title='Single Tweet Model Price Spike Validation')
-plt.savefig('single_price_spike_val_conf_matrix.png')
+                      title='Batch Tweet Model Aggregate Price Spike Validation')
+plt.savefig('batch_price_spike_agg_val_conf_matrix.png')
