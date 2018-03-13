@@ -24,7 +24,6 @@ def get_tweet_len(tweets):
 
 MIN_DIST = 3
 ONION = 20115
-TOMATO = 20279
 
 def is_relevant(tweet, word_embeddings):
     for word in tweet:
@@ -33,7 +32,16 @@ def is_relevant(tweet, word_embeddings):
             return True
     return False
 
-def load_tweets_and_prices(path_embeddings, path_batches, word_embeddings, params):
+def load_features(path_features, params):
+    features = {}
+    with open(path_features, "r") as feat_f:
+        for line in feat_f:
+            city_month = line.split('\t')[0]
+            feat = np.array([float(x) for x in line.split('\t')[1:]], dtype=np.float32)
+            features[city_month] = feat
+    return features
+
+def load_tweets_and_prices(path_embeddings, path_batches, word_embeddings, features, params):
     """Create tf.data Instance from txt file
 
     Args:
@@ -44,9 +52,9 @@ def load_tweets_and_prices(path_embeddings, path_batches, word_embeddings, param
     Returns:
         tweets, prices: (tf.Dataset) yielding list of tweet tokens, lengths, and price deviations
     """
-    tweets, prices = [], []
+    tweets, tweet_feat, prices = [], [], []
     tweet_month_idx, monthly_price = [], []
-    label_distribution = np.zeros((3,), dtype=np.int32)
+    label_distribution = np.zeros((params.class_size,), dtype=np.int32)
     for filename in os.listdir(path_batches):
         city_month = filename[:filename.find("batch")]
         with open(path_batches + filename, "r") as batchf:
@@ -64,25 +72,31 @@ def load_tweets_and_prices(path_embeddings, path_batches, word_embeddings, param
                 cur_tweet = [int(num) for num in tweet.split(',')]
                 if (is_relevant(cur_tweet, word_embeddings)):
                     tweets.append(cur_tweet)
+                    tweet_feat.append(features[city_month[:-1]])
                     tweet_month_idx.append(len(monthly_price) - 1)
                     prices.append(yVal)
                     label_distribution[yVal] += 1
 
     tweet_month_idx, monthly_price = np.array(tweet_month_idx), np.array(monthly_price)
+    tweet_feat = np.array(tweet_feat)
     tweet_lens = np.array(get_tweet_len(tweets))
+    prices = np.array(prices)
     tweets = pad_tweets(tweets, params.tweet_max_len)
     #np.random.seed(325)
-    #idx = np.random.choice(5000, params.train_size)
+    #idx = np.random.choice(500, params.train_size)
     #tweets = tweets[idx]
-    #prices = np.array(prices)[idx]
+    #prices = prices[idx]
     #tweet_lens = tweet_lens[idx]
+    #tweet_feat = tweet_feat[idx]
     print(tweets.shape)
+    print(tweet_feat.shape)
     print(monthly_price.shape)
     print(label_distribution)
 
     tweet_len = tf.data.Dataset.from_tensor_slices(tf.constant(tweet_lens, dtype=tf.int32))
+    tweet_feat = tf.data.Dataset.from_tensor_slices(tf.constant(tweet_feat, dtype=tf.float32))
     tweets = tf.data.Dataset.from_tensor_slices(tf.constant(tweets, dtype=tf.int32))
-    tweets = tf.data.Dataset.zip((tweets, tweet_len))
+    tweets = tf.data.Dataset.zip((tweets, tweet_len, tweet_feat))
     prices = tf.data.Dataset.from_tensor_slices(tf.constant(prices, dtype=tf.int32))
     return tweets, prices, tweet_month_idx, monthly_price
 
@@ -98,8 +112,6 @@ def load_word_embeddings(path_word_embeddings, params):
     word_embeddings = []
     with open (path_word_embeddings, "r") as f:
         for line in f:
-            if (line.split()[0] == 'onion'):
-                print(len(word_embeddings))
             word_embeddings.append([float(x) for x in line.split()[1:]])
             while (len(word_embeddings[-1]) < params.embedding_size):
                 word_embeddings[-1].append(0.0)
@@ -137,7 +149,7 @@ def input_fn(mode, tweets, prices, tweet_month_idx, monthly_price, params):
     iterator = dataset.make_initializable_iterator()
 
     # Query the output of the iterator for input to the model
-    ((tweets, tweet_len), prices) = iterator.get_next()
+    ((tweets, tweet_len, tweet_feat), prices) = iterator.get_next()
     init_op = iterator.initializer
 
     # Build and return a dictionary containing the nodes / ops
@@ -145,6 +157,7 @@ def input_fn(mode, tweets, prices, tweet_month_idx, monthly_price, params):
         'tweets': tweets,
         'prices': prices,
         'tweet_lengths': tweet_len,
+        'tweet_features': tweet_feat,
         'tweet_month_idx': tweet_month_idx,
         'monthly_price': monthly_price,
         'iterator_init_op': init_op,

@@ -10,7 +10,7 @@ from model.utils import Params
 from model.utils import set_logger
 from model.training import train_and_evaluate
 from model.input_fn import input_fn
-from model.input_fn import load_tweets_and_prices, load_word_embeddings
+from model.input_fn import load_tweets_and_prices, load_word_embeddings, load_features
 from model.model_fn import model_fn
 
 
@@ -51,18 +51,23 @@ if __name__ == '__main__':
     path_eval_embeddings = os.path.join(args.data_dir, 'embeddings/')
     path_eval_batches = os.path.join(args.data_dir, 'batches_val/')
     path_word_embeddings = os.path.join(args.data_dir, 'glove.twitter.27B.50d.txt')
+    path_features = os.path.join(args.data_dir, 'tweet_features.txt')
     
     # Load word embeddings
     logging.info("Loading word embeddings...")
     word_embeddings = load_word_embeddings(path_word_embeddings, params)
     logging.info("- done.")
+
+    logging.info("Loading tweet features...")
+    tweet_feat = load_features(path_features, params)
+    logging.info("- done.")
     
     # Create the input data pipeline
     logging.info("Creating the datasets...")
     train_tweets, train_prices, train_tweet_month_idx, train_monthly_price = load_tweets_and_prices(
-        path_train_embeddings, path_train_batches, word_embeddings, params)
+        path_train_embeddings, path_train_batches, word_embeddings, tweet_feat, params)
     eval_tweets, eval_prices, eval_tweet_month_idx, eval_monthly_price = load_tweets_and_prices(
-        path_eval_embeddings, path_eval_batches, word_embeddings, params)
+        path_eval_embeddings, path_eval_batches, word_embeddings, tweet_feat, params)
 
     # Create the two iterators over the two datasets
     train_inputs = input_fn('train', train_tweets, train_prices, train_tweet_month_idx, train_monthly_price, params)
