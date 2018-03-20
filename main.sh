@@ -1,2 +1,3 @@
 #! /bin/sh
-python models/deep_learning/train.py
+cd models/deep_learning/
+python train.py
