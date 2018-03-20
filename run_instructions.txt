@@ -1,3 +1,5 @@
+First, make sure everything is properly installed as listed in installation_instructions.txt
+
 Running main.sh will run our deep learning model and put the outputs in models/deep_learning/experiments/base_models/results/ 
 
 Hyperparameters for running the deep learning model can be changed in models/deep_learning/experiments/base_models/params.json
