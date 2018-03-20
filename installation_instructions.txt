@@ -1,0 +1,8 @@
+Execute the following 4 lines in order:
+
+pip install virtualenv
+virtualenv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+You can now run ./main.sh
