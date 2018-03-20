@@ -25,6 +25,8 @@ def evaluate_sess(sess, model_spec, num_steps, epoch, writer=None, params=None):
     predictions = model_spec['predictions']
     update_metrics = model_spec['update_metrics']
     eval_metrics = model_spec['metrics']
+    tweet_dist = model_spec['tweet_dist']
+    tweet_month_idx = model_spec['tweet_month_idx']
     global_step = tf.train.get_global_step()
 
     # Load the evaluation dataset into the pipeline and initialize the metrics init op
@@ -43,7 +45,9 @@ def evaluate_sess(sess, model_spec, num_steps, epoch, writer=None, params=None):
         for j in range(len(pred)):
             cur_conf_matrix[pred[j]][pri[j]] += 1
             index = i*params.batch_size + j
-            cur_votes[model_spec['tweet_month_idx'][index]][pred[j]] += 1
+            cur_month_idx = tweet_month_idx[index]
+            cur_dist = tweet_dist[index]
+            cur_votes[cur_month_idx][pred[j]] += (1.0 / cur_dist)
     
     month_pred = np.argmax(cur_votes, axis=1)
     aggregate_acc = 1.0*np.sum(month_pred == model_spec['monthly_price'])/cur_votes.shape[0]
