@@ -1,5 +1,9 @@
 First, make sure everything is properly installed as listed in installation_instructions.txt
 
-Running main.sh will run our deep learning model and put the outputs in models/deep_learning/experiments/base_models/results/ 
+Tweets categorized by city must be in the models/deep_learning/data/city_tweets/
+The Twitter GloVe word embeddings (https://nlp.stanford.edu/projects/glove/) need to be in models/deep_learning/data/
+The training/evaluation inputs need to be run with word_embeddings.ipynb
 
-Hyperparameters for running the deep learning model can be changed in models/deep_learning/experiments/base_models/params.json
+Running main.sh will run our deep learning models on both price direction and price spike and output the results in the relevant folders.
+
+Hyperparameters for running the deep learning model can be changed in the respective json files.
