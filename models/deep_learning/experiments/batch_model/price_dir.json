@@ -7,11 +7,11 @@
     "lstm_num_units": 50,
     "embedding_size": 50,
 
-    "learning_rate": 1.2e-3,
-    "batch_size": 32,
+    "learning_rate": 1e-2,
+    "batch_size": 50,
     "num_epochs": 20,
-    "dropout_rate": 0.2,
-    "reg_term": 0.005,
+    "dropout_rate": 0.5,
+    "reg_term": 0.01,
 
     "save_summary_steps": 100
 }
