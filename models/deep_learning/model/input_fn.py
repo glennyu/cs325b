@@ -45,7 +45,7 @@ def load_features(path_features, params):
             city_month = line.strip().split('\t')[0]
             feat = np.array([float(x) for x in line.strip().split('\t')[1:]], dtype=np.float32)
             features[city_month] = feat
-    print(features.keys())
+    #print(features.keys())
     return features
 
 def load_tweets_and_prices(path_embeddings, path_batches, word_embeddings, features, params):

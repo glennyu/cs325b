@@ -47,7 +47,7 @@ def evaluate_sess(sess, model_spec, num_steps, epoch, writer=None, params=None):
             index = i*params.batch_size + j
             cur_month_idx = tweet_month_idx[index]
             cur_dist = tweet_dist[index]
-            cur_votes[cur_month_idx][pred[j]] += (1.0 / cur_dist)
+            cur_votes[cur_month_idx][pred[j]] += (1.0 / (cur_dist + 1))
     
     month_pred = np.argmax(cur_votes, axis=1)
     aggregate_acc = 1.0*np.sum(month_pred == model_spec['monthly_price'])/cur_votes.shape[0]
