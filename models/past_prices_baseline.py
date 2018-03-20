@@ -150,14 +150,14 @@ def train_model(X, y, predictSpike):
         mean_val_acc = accuracy_score(y_val, predictions)
         if predictSpike:
             get_conf_matrix(rf.predict(X_train), y_train, 
-                    ['no spike', 'spike'], 'Historic Prices Random Forest Price Spike Train')
+                    ['no spike', 'spike'], 'Past Prices Random Forest Price Spike Train')
             get_conf_matrix(rf.predict(X_val), y_val, 
-                    ['no spike', 'spike'], 'Historic Prices Random Forest Price Spike Validation')
+                    ['no spike', 'spike'], 'Past Prices Random Forest Price Spike Validation')
         else:
             get_conf_matrix(rf.predict(X_train), y_train, 
-                    ['decrease', 'no change', 'increase'], 'Historic Prices Random Forest Price Direction Train')
+                    ['decrease', 'no change', 'increase'], 'Past Prices Random Forest Price Direction Train')
             get_conf_matrix(rf.predict(X_val), y_val, 
-                    ['decrease', 'no change', 'increase'], 'Historic Prices Random Forest Price Direction Validation')
+                    ['decrease', 'no change', 'increase'], 'Past Prices Random Forest Price Direction Validation')
 
     elif model == "Ridge Classifier":
         clf = RC()
