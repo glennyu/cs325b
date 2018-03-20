@@ -1,0 +1,1 @@
+Running main.sh will run our deep learning model and put the outputs in experiments/base_models/results. Hyperparameters for running the deep learning model can be changed in experiments/base_models/params.json
