@@ -1,0 +1,17 @@
+{
+    "class_size": 2,
+    "tweet_max_len": 70,
+    "train_size": 72424,
+    "eval_size": 20528,
+
+    "lstm_num_units": 50,
+    "embedding_size": 50,
+
+    "learning_rate": 1.2e-3,
+    "batch_size": 32,
+    "num_epochs": 20,
+    "dropout_rate": 0.2,
+    "reg_term": 0.005,
+
+    "save_summary_steps": 100
+}
